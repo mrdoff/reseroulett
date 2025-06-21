@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utflyktsroulett i Skåne</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Lighter background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid #e2e8f0; /* Subtle border */
+        }
+        #rouletteDisplay {
+            min-height: 120px; /* Ensure space for content */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #edf2f7; /* Slightly darker background for display */
+            border-radius: 15px; /* Rounded corners for display area */
+            border: 1px dashed #cbd5e1; /* Dashed border for visual interest */
+            transition: background-color 0.3s ease;
+        }
+        #rouletteDisplay.spinning {
+            background-color: #ffe8d6; /* Light orange during spin */
+        }
+        #destination {
+            font-size: 2.25rem; /* Larger font for destination */
+            font-weight: 700; /* Bold */
+            color: #2d3748; /* Darker text */
+            margin-bottom: 10px;
+            transition: transform 0.5s ease-out; /* Smooth scale effect */
+        }
+        #activity {
+            font-size: 1.15rem; /* Readable font for activity */
+            color: #4a5568; /* Slightly lighter text */
+            line-height: 1.6;
+        }
+        button {
+            background-color: #4c51bf; /* Deeper purple */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px; /* Rounded button */
+            font-size: 1.25rem; /* Larger button text */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            border: none;
+            box-shadow: 0 5px 15px rgba(76, 81, 191, 0.3); /* Soft shadow */
+        }
+        button:hover {
+            background-color: #5a62cf; /* Lighter purple on hover */
+            transform: translateY(-2px); /* Slight lift */
+            box-shadow: 0 8px 20px rgba(76, 81, 191, 0.4);
+        }
+        button:active {
+            transform: translateY(0); /* Press effect */
+            box-shadow: 0 3px 10px rgba(76, 81, 191, 0.2);
+        }
+        button:disabled {
+            background-color: #a0aec0; /* Grey when disabled */
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: white;
+            font-size: 1rem;
+            color: #2d3748;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 300px;
+            appearance: none; /* Remove default dropdown arrow */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234A5568%22%20d%3D%22M287%2C197.3L159.2%2C69.5c-3.6-3.6-8.5-5.4-13.9-5.4s-10.3%2C1.8-13.9%2C5.4L5.4%2C197.3c-3.6%2C3.6-5.4%2C8.5-5.4%2C13.9s1.8%2C10.3%2C5.4%2C13.9l13.9%2C13.9c3.6%2C3.6%2C8.5%2C5.4%2C13.9%2C5.4s10.3-1.8%2C13.9-5.4l92.5-92.5l92.5%2C92.5c3.6%2C3.6%2C8.5%2C5.4%2C13.9%2C5.4s10.3-1.8%2C13.9-5.4l13.9-13.9c3.6-3.6%2C5.4-8.5%2C5.4-13.9s-1.8-10.3-5.4-13.9z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Utflyktsroulett i Skåne</h1>
+        <p class="text-gray-600 mb-4">Välj din startort och hitta din nästa tågresa med aktivitet!</p>
+
+        <label for="startCity" class="block text-gray-700 text-sm font-semibold mb-2">Välj startort:</label>
+        <select id="startCity" class="mb-8">
+            <!-- Options will be dynamically populated here -->
+        </select>
+
+        <div id="rouletteDisplay" class="mb-8">
+            <p id="destination" class="text-gray-900 text-4xl font-extrabold"></p>
+            <p id="activity" class="text-gray-700 text-lg"></p>
+        </div>
+
+        <button id="spinButton">Snurra hjulet!</button>
+    </div>
+
+    <script>
+        // Data för alla städer i Skåne med deras aktivitetsförslag
+        const allCitiesData = {
+            "Malmö": { name: "Malmö", activity: "Utforska Malmöhus Slott, njut av en båttur på kanalerna ('Rundan') eller besök Disgusting Food Museum för en annorlunda upplevelse." },
+            "Lund": { name: "Lund", activity: "Upptäck Lunds Domkyrka, promenera i Botaniska trädgården eller besök Kulturen, ett friluftsmuseum." },
+            "Helsingborg": { name: "Helsingborg", activity: "Klättra upp i Kärnan för panoramautsikt, besök Sofiero Slott och Slottsträdgård, eller koppla av på Tropical Beach." },
+            "Eslöv": { name: "Eslöv", activity: "Besök Karlsrobadet för ett äventyr i simhallen eller utforska discgolfbanan i Trollsjöområdet." },
+            "Hässleholm": { name: "Hässleholm", activity: "Besök Wanås Konstpark för unik konst i naturen (kolla bussförbindelser), utforska Hässleholms historia på museet, eller ta en utflykt till Hovdala Slott." },
+            "Kristianstad": { name: "Kristianstad", activity: "Lär dig om regionens historia på Regionmuseet, beundra den vackra Heliga Trefaldighetskyrkan, eller upplev det unika biosfärområdet Vattenriket på Naturum." },
+            "Ystad": { name: "Ystad", activity: "Vandra genom Ystads pittoreska Gamla Stan, besök Klostret, eller följ med på en guidad tur i Wallanders fotspår." },
+            "Trelleborg": { name: "Trelleborg", activity: "Upptäck den rekonstruerade vikingaborgen Trelleborgen, besök Axel Ebbes Konsthall, eller strosa runt i stadskärnan." },
+            "Höör": { name: "Höör", activity: "Tillbringa en dag på Skånes Djurpark, besök det vackra Bosjökloster Slott, eller njut av naturen vid Ringsjön med bad eller fiske." },
+            "Stehag": { name: "Stehag", activity: "Ta ett svalkande dopp vid Sjöholmens badplats (vid Ringsjön), eller vandra/springa i Gyaskogens motionsspår." },
+            "Klippan": { name: "Klippan", activity: "Vandra i det vackra naturreservatet Klöva Hallar, handla kvalitetsullprodukter på Klippans Yllefabrik, eller cykla dressin på den gamla järnvägen." },
+            "Teckomatorp": { name: "Teckomatorp", activity: "Utforska Torvalla och dess faciliteter, eller ge dig ut på en cykeltur på de omkringliggande landsvägarna." },
+            "Landskrona": { name: "Landskrona", activity: "Besök den välbevarade fästningen Landskrona Citadell, ta en färja över till ön Ven för en cykeltur, eller utforska konst på Konsthallen." },
+            "Simrishamn": { name: "Simrishamn", activity: "Besök St. Nicolai Kyrka, strosa runt i den mysiga hamnen, eller utforska Österlens vackra landskap." },
+            "Åstorp": { name: "Åstorp", activity: "Besök Söderåsens nationalpark (kräver ev. bussbyte) eller utforska den gamla bruksorten." },
+            "Ängelholm": { name: "Ängelholm", activity: "Strosa längs Rönne å, besök Järnvägsmuseet eller koppla av på den långa sandstranden i Sibirien." },
+            "Bjuv": { name: "Bjuv", activity: "Upptäck Bjuvs historia vid det gamla bruksområdet eller njut av lugnet i naturen runtomkring." },
+            "Kävlinge": { name: "Kävlinge", activity: "Cykla längs Kävlingeån, besök vackra Kävlinge kyrka, eller utforska de lokala gårdsbutikerna." },
+            "Burlöv": { name: "Burlöv", activity: "Shoppa på Burlöv Center, eller ta en promenad i Arlövs grönområden." },
+            "Lomma": { name: "Lomma", activity: "Njut av stranden i Lomma Hamn, ta en fika vid vattnet, eller promenera längs strandpromenaden." },
+            "Svedala": { name: "Svedala", activity: "Upptäck Svedala kyrka, eller njut av en lugn promenad i Svedalaparken." },
+            "Tomelilla": { name: "Tomelilla", activity: "Besök Tosselilla Sommarland (säsongsöppet), utforska Fyledalen, eller upplev Österlen lyser (höstsäsong)." },
+            "Bromölla": { name: "Bromölla", activity: "Besök Ifö Center för konst och kultur, eller utforska Ivösjön med bad- och fiskemöjligheter." },
+            "Osby": { name: "Osby", activity: "Njut av naturen runt Osbysjön, eller besök Brio Lekoseum." },
+            "Perstorp": { name: "Perstorp", activity: "Utforska den unika Perstorpsparken med dess skulpturer och grönområden." },
+            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet." },
+            "Munka-Ljungby": { name: "Munka-Ljungby", activity: "Ta en promenad i Munka-Ljungby Hembygdspark och upplev den lokala historien." },
+            "Hörby": { name: "Hörby", activity: "Besök Hörby museum, eller utforska de vackra naturområdena runt Ringsjön." }
+        };
+
+        // Skapa stationConnections där varje stad kan nå alla andra städer
+        const stationConnections = {};
+        const allCityNames = Object.keys(allCitiesData);
+        allCityNames.forEach(startCity => {
+            stationConnections[startCity] = allCityNames.filter(destCity => destCity !== startCity);
+        });
+
+        const spinButton = document.getElementById('spinButton');
+        const startCitySelect = document.getElementById('startCity');
+        const destinationDisplay = document.getElementById('destination');
+        const activityDisplay = document.getElementById('activity');
+        const rouletteDisplayDiv = document.getElementById('rouletteDisplay');
+
+        let currentDestinations = []; // Håller de destinationer som är valbara
+
+        // Fyll i dropdown-menyn med alla startorter
+        function populateStartCities() {
+            // Hämta alla unika städer som är nycklar i stationConnections och sortera dem
+            const cities = Object.keys(stationConnections).sort();
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                startCitySelect.appendChild(option);
+            });
+        }
+
+        // Uppdatera listan med destinationer baserat på vald startort
+        function updateDestinations() {
+            const selectedStartCity = startCitySelect.value;
+            const reachableCityNames = stationConnections[selectedStartCity] || [];
+
+            // Filtrera bort startorten själv från listan över nåbara destinationer och se till att de finns i allCitiesData
+            currentDestinations = reachableCityNames
+                .filter(cityName => cityName !== selectedStartCity && allCitiesData[cityName])
+                .map(cityName => allCitiesData[cityName]);
+
+            // Om inga destinationer hittas (vilket inte bör hända nu), inaktivera snurrknappen och visa meddelande
+            if (currentDestinations.length === 0) {
+                spinButton.disabled = true;
+                destinationDisplay.textContent = "Inga destinationer hittades från " + selectedStartCity + ".";
+                activityDisplay.textContent = "Välj en annan startort.";
+            } else {
+                spinButton.disabled = false;
+                destinationDisplay.textContent = "Snurra hjulet!";
+                activityDisplay.textContent = "Välj din startort och klicka för att hitta en destination.";
+            }
+        }
+
+        // Funktion för att snurra rouletten
+        function spinRoulette() {
+            if (currentDestinations.length === 0) {
+                // Skapa en enkel modal istället för alert
+                const modal = document.createElement('div');
+                modal.className = "fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center";
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+                        <p class="mb-4 text-lg font-semibold">Vänligen välj en startort med tillgängliga destinationer.</p>
+                        <button id="closeModal" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">OK</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                return;
+            }
+
+            spinButton.disabled = true; // Inaktivera knappen under snurren
+            rouletteDisplayDiv.classList.add('spinning'); // Lägg till spinnklass för visuell effekt
+
+            let spinCount = 0;
+            const totalSpins = 30; // Antal snurr för att simulera rouletteeffekt
+            const intervalTime = 100; // Millisekunder mellan varje "snurr"
+
+            const spinInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * currentDestinations.length);
+                const currentSelection = currentDestinations[randomIndex];
+                destinationDisplay.textContent = currentSelection.name;
+                activityDisplay.textContent = currentSelection.activity; // Visa aktivitet under spinn
+
+                spinCount++;
+                if (spinCount >= totalSpins) {
+                    clearInterval(spinInterval); // Stoppa snurren
+
+                    // Slutgiltigt val
+                    const finalIndex = Math.floor(Math.random() * currentDestinations.length);
+                    const finalDestination = currentDestinations[finalIndex];
+
+                    // Visa det slutgiltiga valet med en liten fördröjning
+                    setTimeout(() => {
+                        destinationDisplay.textContent = finalDestination.name;
+                        activityDisplay.textContent = finalDestination.activity;
+                        destinationDisplay.style.transform = 'scale(1.1)'; // En liten skalningseffekt vid slutval
+                        setTimeout(() => {
+                            destinationDisplay.style.transform = 'scale(1)'; // Återgå till normal storlek
+                            rouletteDisplayDiv.classList.remove('spinning'); // Ta bort spinnklass
+                            spinButton.disabled = false; // Aktivera knappen igen
+                        }, 300);
+                    }, 500); // Liten fördröjning innan det slutgiltiga valet visas
+                }
+            }, intervalTime);
+        }
+
+        // Initiera sidan
+        window.onload = () => {
+            populateStartCities(); // Fyll dropdown vid laddning
+            // Sätt en initial startort och uppdatera destinationerna
+            startCitySelect.value = "Malmö"; // Sätt Malmö som default startort
+            updateDestinations(); // Uppdatera destinationerna baserat på default val
+            destinationDisplay.textContent = "Välj startort!";
+            activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+        };
+
+        // Lägg till eventlyssnare på dropdown och knappen
+        startCitySelect.addEventListener('change', updateDestinations);
+        spinButton.addEventListener('click', spinRoulette);
+    </script>
+</body>
+</html>

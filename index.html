@@ -158,36 +158,36 @@
     </div>
 
     <script>
-        // Data för alla städer i Skåne med deras aktivitetsförslag
+        // Data för alla städer i Skåne med deras aktivitetsförslag och koordinater
         const allCitiesData = {
-            "Malmö": { name: "Malmö", activity: "Utforska Malmöhus Slott, njut av en båttur på kanalerna ('Rundan') eller besök Disgusting Food Museum för en annorlånda upplevelse." },
-            "Lund": { name: "Lund", activity: "Upptäck Lunds Domkyrka, promenera i Botaniska trädgården eller besök Kulturen, ett friluftsmuseum." },
-            "Helsingborg": { name: "Helsingborg", activity: "Klättra upp i Kärnan för panoramautsikt, besök Sofiero Slott och Slottsträdgård, eller koppla av på Tropical Beach." },
-            "Eslöv": { name: "Eslöv", activity: "Besök Karlsrobadet för ett äventyr i simhallen eller utforska discgolfbanan i Trollsjöområdet." },
-            "Hässleholm": { name: "Hässleholm", activity: "Besök Wanås Konstpark för unik konst i naturen (kolla bussförbindelser), utforska Hässleholms historia på museet, eller ta en utflykt till Hovdala Slott." },
-            "Kristianstad": { name: "Kristianstad", activity: "Lär dig om regionens historia på Regionmuseet, beundra den vackra Heliga Trefaldighetskyrkan, eller upplev det unika biosfärområdet Vattenriket på Naturum." },
-            "Ystad": { name: "Ystad", activity: "Vandra genom Ystads pittoreska Gamla Stan, besök Klostret, eller följ med på en guidad tur i Wallanders fotspår." },
-            "Trelleborg": { name: "Trelleborg", activity: "Upptäck den rekonstruerade vikingaborgen Trelleborgen, besök Axel Ebbes Konsthall, eller strosa runt i stadskärnan." },
-            "Höör": { name: "Höör", activity: "Tillbringa en dag på Skånes Djurpark, besök det vackra Bosjökloster Slott, eller njut av naturen vid Ringsjön med bad eller fiske." },
-            "Stehag": { name: "Stehag", activity: "Ta ett svalkande dopp vid Sjöholmens badplats (vid Ringsjön), eller vandra/springa i Gyaskogens motionsspår." },
-            "Klippan": { name: "Klippan", activity: "Vandra i det vackra naturreservatet Klöva Hallar, handla kvalitetsullprodukter på Klippans Yllefabrik, eller cykla dressin på den gamla järnvägen." },
-            "Teckomatorp": { name: "Teckomatorp", activity: "Utforska Torvalla och dess faciliteter, eller ge dig ut på en cykeltur på de omkringliggande landsvägarna." },
-            "Landskrona": { name: "Landskrona", activity: "Besök den välbevarade fästningen Landskrona Citadell, ta en färja över till ön Ven för en cykeltur, eller utforska konst på Konsthallen." },
-            "Simrishamn": { name: "Simrishamn", activity: "Besök St. Nicolai Kyrka, strosa runt i den mysiga hamnen, eller utforska Österlens vackra landskap." },
-            "Åstorp": { name: "Åstorp", activity: "Besök Söderåsens nationalpark (kräver ev. bussbyte) eller utforska den gamla bruksorten." },
-            "Ängelholm": { name: "Ängelholm", activity: "Strosa längs Rönne å, besök Järnvägsmuseet eller koppla av på den långa sandstranden i Sibirien." },
-            "Bjuv": { name: "Bjuv", activity: "Upptäck Bjuvs historia vid det gamla bruksområdet eller njut av lugnet i naturen runtomkring." },
-            "Kävlinge": { name: "Kävlinge", activity: "Cykla längs Kävlingeån, besök vackra Kävlinge kyrka, eller utforska de lokala gårdsbutikerna." },
-            "Burlöv": { name: "Burlöv", activity: "Shoppa på Burlöv Center, eller ta en promenad i Arlövs grönområden." },
-            "Lomma": { name: "Lomma", activity: "Njut av stranden i Lomma Hamn, ta en fika vid vattnet, eller promenera längs strandpromenaden." },
-            "Svedala": { name: "Svedala", activity: "Upptäck Svedala kyrka, eller njut av en lugn promenad i Svedalaparken." },
-            "Tomelilla": { name: "Tomelilla", activity: "Besök Tosselilla Sommarland (säsongsöppet), utforska Fyledalen, eller upplev Österlen lyser (höstsäsong)." },
-            "Bromölla": { name: "Bromölla", activity: "Besök Ifö Center för konst och kultur, eller utforska Ivösjön med bad- och fiskemöjligheter." },
-            "Osby": { name: "Osby", activity: "Njut av naturen runt Osbysjön, eller besök Brio Lekoseum." },
-            "Perstorp": { name: "Perstorp", activity: "Utforska den unika Perstorpsparken med dess skulpturer och grönområden." },
-            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet." },
-            "Munka-Ljungby": { name: "Munka-Ljungby", activity: "Ta en promenad i Munka-Ljungby Hembygdspark och upplev den lokala historien." },
-            "Hörby": { name: "Hörby", activity: "Besök Hörby museum, eller utforska de vackra naturområdena runt Ringsjön." }
+            "Malmö": { name: "Malmö", activity: "Utforska Malmöhus Slott, njut av en båttur på kanalerna ('Rundan') eller besök Disgusting Food Museum för en annorlånda upplevelse.", lat: 55.605, lon: 13.002 },
+            "Lund": { name: "Lund", activity: "Upptäck Lunds Domkyrka, promenera i Botaniska trädgården eller besök Kulturen, ett friluftsmuseum.", lat: 55.7047, lon: 13.191 },
+            "Helsingborg": { name: "Helsingborg", activity: "Klättra upp i Kärnan för panoramautsikt, besök Sofiero Slott och Slottsträdgård, eller koppla av på Tropical Beach.", lat: 56.0465, lon: 12.6946 },
+            "Eslöv": { name: "Eslöv", activity: "Besök Karlsrobadet för ett äventyr i simhallen eller utforska discgolfbanan i Trollsjöområdet.", lat: 55.8392, lon: 13.3039 },
+            "Hässleholm": { name: "Hässleholm", activity: "Besök Wanås Konstpark för unik konst i naturen (kolla bussförbindelser), utforska Hässleholms historia på museet, eller ta en utflykt till Hovdala Slott.", lat: 56.1667, lon: 13.7833 },
+            "Kristianstad": { name: "Kristianstad", activity: "Lär dig om regionens historia på Regionmuseet, beundra den vackra Heliga Trefaldighetskyrkan, eller upplev det unika biosfärområdet Vattenriket på Naturum.", lat: 56.0294, lon: 14.1593 },
+            "Ystad": { name: "Ystad", activity: "Vandra genom Ystads pittoreska Gamla Stan, besök Klostret, eller följ med på en guidad tur i Wallanders fotspår.", lat: 55.42, lon: 13.83 },
+            "Trelleborg": { name: "Trelleborg", activity: "Upptäck den rekonstruerade vikingaborgen Trelleborgen, besök Axel Ebbes Konsthall, eller strosa runt i stadskärnan.", lat: 55.37, lon: 13.16 },
+            "Höör": { name: "Höör", activity: "Tillbringa en dag på Skånes Djurpark, besök det vackra Bosjökloster Slott, eller njut av naturen vid Ringsjön med bad eller fiske.", lat: 55.9361, lon: 13.5472 },
+            "Stehag": { name: "Stehag", activity: "Ta ett svalkande dopp vid Sjöholmens badplats (vid Ringsjön), eller vandra/springa i Gyaskogens motionsspår.", lat: 55.900, lon: 13.383 },
+            "Klippan": { name: "Klippan", activity: "Vandra i det vackra naturreservatet Klöva Hallar, handla kvalitetsullprodukter på Klippans Yllefabrik, eller cykla dressin på den gamla järnvägen.", lat: 56.1333, lon: 13.1333 },
+            "Teckomatorp": { name: "Teckomatorp", activity: "Utforska Torvalla och dess faciliteter, eller ge dig ut på en cykeltur på de omkringliggande landsvägarna.", lat: 55.867, lon: 13.09 },
+            "Landskrona": { name: "Landskrona", activity: "Besök den välbevarade fästningen Landskrona Citadell, ta en färja över till ön Ven för en cykeltur, eller utforska konst på Konsthallen.", lat: 55.8706, lon: 12.8256 },
+            "Simrishamn": { name: "Simrishamn", activity: "Besök St. Nicolai Kyrka, strosa runt i den mysiga hamnen, eller utforska Österlens vackra landskap.", lat: 55.55, lon: 14.35 },
+            "Åstorp": { name: "Åstorp", activity: "Besök Söderåsens nationalpark (kräver ev. bussbyte) eller utforska den gamla bruksorten.", lat: 56.1347, lon: 12.9472 },
+            "Ängelholm": { name: "Ängelholm", activity: "Strosa längs Rönne å, besök Järnvägsmuseet eller koppla av på den långa sandstranden i Sibirien.", lat: 56.2417, lon: 12.9261 },
+            "Bjuv": { name: "Bjuv", activity: "Upptäck Bjuvs historia vid det gamla bruksområdet eller njut av lugnet i naturen runtomkring.", lat: 56.0833, lon: 12.9167 },
+            "Kävlinge": { name: "Kävlinge", activity: "Cykla längs Kävlingeån, besök vackra Kävlinge kyrka, eller utforska de lokala gårdsbutikerna.", lat: 55.7939, lon: 13.1133 },
+            "Burlöv": { name: "Burlöv", activity: "Shoppa på Burlöv Center, eller ta en promenad i Arlövs grönområden.", lat: 55.6333, lon: 13.0667 },
+            "Lomma": { name: "Lomma", activity: "Njut av stranden i Lomma Hamn, ta en fika vid vattnet, eller promenera längs strandpromenaden.", lat: 55.6667, lon: 13.0833 },
+            "Svedala": { name: "Svedala", activity: "Upptäck Svedala kyrka, eller njut av en lugn promenad i Svedalaparken.", lat: 55.5, lon: 13.2333 },
+            "Tomelilla": { name: "Tomelilla", activity: "Besök Tosselilla Sommarland (säsongsöppet), utforska Fyledalen, eller upplev Österlen lyser (höstsäsong).", lat: 55.5472, lon: 13.9472 },
+            "Bromölla": { name: "Bromölla", activity: "Besök Ifö Center för konst och kultur, eller utforska Ivösjön med bad- och fiskemöjligheter.", lat: 56.05, lon: 14.4667 },
+            "Osby": { name: "Osby", activity: "Njut av naturen runt Osbysjön, eller besök Brio Lekoseum.", lat: 56.3667, lon: 13.9833 },
+            "Perstorp": { name: "Perstorp", activity: "Utforska den unika Perstorpsparken med dess skulpturer och grönområden.", lat: 56.1333, lon: 13.3833 },
+            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet.", lat: 55.9142, lon: 13.1044 },
+            "Munka-Ljungby": { name: "Munka-Ljungby", activity: "Ta en promenad i Munka-Ljungby Hembygdspark och upplev den lokala historien.", lat: 56.25, lon: 12.9667 },
+            "Hörby": { name: "Hörby", activity: "Besök Hörby museum, eller utforska de vackra naturområdena runt Ringsjön.", lat: 55.85, lon: 13.65 }
         };
 
         // Skapa stationConnections där varje stad kan nå alla andra städer
@@ -237,6 +237,80 @@
                 activityDisplay.textContent = "Välj din startort och klicka för att hitta en destination.";
             }
         }
+
+        // Funktion för att beräkna avstånd mellan två geografiska punkter (Haversine-formeln)
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Jordens radie i kilometer
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Avstånd i kilometer
+        }
+
+        // Försök att hitta närmaste stad baserat på användarens position
+        function findNearestCity(latitude, longitude) {
+            let closestCityName = '';
+            let minDistance = Infinity;
+
+            for (const cityName in allCitiesData) {
+                const city = allCitiesData[cityName];
+                if (city.lat && city.lon) { // Se till att staden har koordinater
+                    const distance = haversineDistance(latitude, longitude, city.lat, city.lon);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestCityName = cityName;
+                    }
+                }
+            }
+            return closestCityName;
+        }
+
+        // Initiera sidan och försök hämta användarens plats
+        window.onload = () => {
+            populateStartCities(); // Fyll dropdown vid laddning
+            trainAnimationContainer.classList.add('hidden'); // Säkerställ att tåget är dolt vid laddning
+            destinationDisplay.style.display = 'block';
+            activityDisplay.style.display = 'block';
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    const nearestCity = findNearestCity(userLat, userLon);
+
+                    if (nearestCity) {
+                        startCitySelect.value = nearestCity;
+                        destinationDisplay.textContent = "Din närmaste stad är:";
+                        activityDisplay.textContent = nearestCity + " (valt automatiskt)";
+                        updateDestinations();
+                    } else {
+                        // Fallback om ingen stad hittas (bör inte hända med fullständig data)
+                        startCitySelect.value = "Malmö";
+                        updateDestinations();
+                        destinationDisplay.textContent = "Välj startort!";
+                        activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+                    }
+                }, (error) => {
+                    // Hantera fel, t.ex. om användaren nekar platsåtkomst
+                    console.error("Fel vid hämtning av plats: ", error);
+                    startCitySelect.value = "Malmö"; // Fallback till Malmö
+                    updateDestinations();
+                    destinationDisplay.textContent = "Välj startort!";
+                    activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+                });
+            } else {
+                // Webbläsaren stöder inte geolokalisering
+                console.log("Webbläsaren stöder inte geolokalisering.");
+                startCitySelect.value = "Malmö"; // Fallback till Malmö
+                updateDestinations();
+                destinationDisplay.textContent = "Välj startort!";
+                activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+            }
+        };
 
         // Funktion för att snurra rouletten
         function spinRoulette() {
@@ -303,16 +377,6 @@
                 }
             }, intervalTime);
         }
-
-        // Initiera sidan
-        window.onload = () => {
-            populateStartCities();
-            startCitySelect.value = "Malmö";
-            updateDestinations();
-            trainAnimationContainer.classList.add('hidden'); // Säkerställ att tåget är dolt vid laddning
-            destinationDisplay.style.display = 'block';
-            activityDisplay.style.display = 'block';
-        };
 
         // Lägg till eventlyssnare på dropdown och knappen
         startCitySelect.addEventListener('change', updateDestinations);

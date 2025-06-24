@@ -15,7 +15,8 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Lighter background */
+            /* Subtle diagonal gradient background for more depth */
+            background: linear-gradient(135deg, #f0f4f8 0%, #e0e7ed 100%); 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,47 +24,53 @@
             margin: 0;
             padding: 20px;
             box-sizing: border-box;
+            color: #2d3748; /* Default text color */
         }
         .container {
             background-color: #ffffff;
             padding: 30px;
             border-radius: 20px; /* More rounded corners */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); /* Stronger, softer shadow */
             text-align: center;
             max-width: 600px;
             width: 100%;
             border: 1px solid #e2e8f0; /* Subtle border */
         }
         #rouletteDisplay {
-            min-height: 150px; /* Increased to accommodate train animation */
+            min-height: 180px; /* Increased to accommodate train animation and text */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             margin-bottom: 25px;
-            padding: 10px 20px; /* Adjusted padding */
+            padding: 15px 25px; /* Adjusted padding */
             background-color: #edf2f7; /* Slightly darker background for display */
-            border-radius: 15px; /* Rounded corners for display area */
+            border-radius: 18px; /* Rounded corners for display area */
             border: 1px dashed #cbd5e1; /* Dashed border for visual interest */
-            transition: background-color 0.3s ease;
+            transition: background-color 0.4s ease; /* Smoother transition */
+            overflow: hidden; /* Hide overflowing content during animation */
         }
         #rouletteDisplay.spinning {
             background-color: #ffe8d6; /* Light orange during spin */
+            border-color: #fbd38d; /* Orange dashed border */
         }
         #destination {
             font-size: 2.25rem; /* Larger font for destination */
             font-weight: 700; /* Bold */
             color: #2d3748; /* Darker text */
             margin-bottom: 10px;
-            transition: transform 0.5s ease-out; /* Smooth scale effect */
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out; /* Faster transitions for spin effect */
+            will-change: transform, opacity; /* Optimize for animation */
         }
         #activity {
             font-size: 1.15rem; /* Readable font for activity */
             color: #4a5568; /* Slightly lighter text */
             line-height: 1.6;
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out; /* Faster transitions for spin effect */
+            will-change: transform, opacity; /* Optimize for animation */
         }
         button {
-            background-color: #4c51bf; /* Deeper purple */
+            background-color: #6a0dad; /* Deeper, richer purple */
             color: white;
             padding: 15px 30px;
             border-radius: 10px; /* Rounded button */
@@ -72,21 +79,22 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
             border: none;
-            box-shadow: 0 5px 15px rgba(76, 81, 191, 0.3); /* Soft shadow */
+            box-shadow: 0 6px 18px rgba(106, 13, 173, 0.4); /* Soft shadow with purple tint */
         }
         button:hover {
-            background-color: #5a62cf; /* Lighter purple on hover */
-            transform: translateY(-2px); /* Slight lift */
-            box-shadow: 0 8px 20px rgba(76, 81, 191, 0.4);
+            background-color: #7d26da; /* Lighter purple on hover */
+            transform: translateY(-3px); /* Slight lift */
+            box-shadow: 0 10px 25px rgba(106, 13, 173, 0.5);
         }
         button:active {
             transform: translateY(0); /* Press effect */
-            box-shadow: 0 3px 10px rgba(76, 81, 191, 0.2);
+            box-shadow: 0 4px 12px rgba(106, 13, 173, 0.3);
         }
         button:disabled {
             background-color: #a0aec0; /* Grey when disabled */
             cursor: not-allowed;
             box-shadow: none;
+            transform: none; /* No lift when disabled */
         }
         select {
             padding: 10px 15px;
@@ -107,10 +115,10 @@
 
         /* Train animation specific styles */
         #train-animation-container {
-            height: 30px; /* Height to contain the SVG train */
+            height: 40px; /* Increased height for larger train */
             width: 100%;
-            margin-top: 15px; /* Spacing below text */
-            display: flex; /* Flex to center train initially if needed */
+            margin-top: 15px;
+            display: flex;
             justify-content: center;
             align-items: center;
         }
@@ -122,25 +130,57 @@
 
         /* Keyframes for train movement */
         @keyframes trainMovement {
-            0% { transform: translateX(-30px); } /* Start slightly off-screen left */
-            50% { transform: translateX(calc(100% - 30px)); } /* Move to right edge minus train width (30px) */
-            100% { transform: translateX(-30px); } /* Back to start, creating loop */
+            0% { transform: translateX(-40px); } /* Start slightly off-screen left */
+            50% { transform: translateX(calc(100% + 10px)); } /* Move across to right edge */
+            100% { transform: translateX(-40px); } /* Reset for continuous loop */
         }
-
+        
         #train {
-            animation: trainMovement 2s linear infinite; /* Loop continuously */
+            animation: trainMovement 1.5s linear infinite; /* Faster, continuous loop */
             animation-play-state: paused; /* Paused by default */
+            transform-origin: center center;
         }
 
         .summer-ticket-link {
-            display: block; /* Make it a block element to go on a new line */
-            margin-top: 20px; /* Add space above the link */
-            font-size: 0.9rem;
-            color: #4c51bf;
+            display: block;
+            margin-top: 20px;
+            font-size: 0.95rem; /* Slightly larger font */
+            color: #6a0dad; /* Matching the button's purple */
             text-decoration: underline;
+            font-weight: 500;
         }
         .summer-ticket-link:hover {
-            color: #5a62cf;
+            color: #7d26da; /* Lighter purple on hover */
+        }
+
+        /* Modal specific styles */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal.show {
+            opacity: 1;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal.show .modal-content {
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -162,14 +202,22 @@
         <div id="rouletteDisplay" class="mb-8">
             <!-- Train animation container -->
             <div id="train-animation-container" class="hidden">
-                <svg width="100%" height="30" viewBox="0 0 200 30" preserveAspectRatio="xMidYMid meet">
+                <svg width="100%" height="40" viewBox="0 0 200 40" preserveAspectRatio="xMidYMid meet">
                     <!-- Track -->
-                    <line x1="0" y1="15" x2="200" y2="15" stroke="#a0aec0" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="0" y1="20" x2="200" y2="20" stroke="#a0aec0" stroke-width="4" stroke-linecap="round"/>
                     <!-- Train (grouped for animation) -->
                     <g id="train">
-                        <rect x="0" y="5" width="30" height="20" rx="4" ry="4" fill="#6a0dad"/> <!-- Lok - purple color -->
-                        <circle cx="8" cy="25" r="4" fill="#4a5568"/> <!-- Wheel 1 -->
-                        <circle cx="22" cy="25" r="4" fill="#4a5568"/> <!-- Wheel 2 -->
+                        <!-- Locomotive Body -->
+                        <rect x="0" y="5" width="40" height="25" rx="5" ry="5" fill="#6a0dad"/>
+                        <!-- Cab -->
+                        <rect x="30" y="0" width="10" height="15" rx="3" ry="3" fill="#4a077d"/>
+                        <!-- Smoke Stack -->
+                        <rect x="5" y="0" width="8" height="8" rx="2" ry="2" fill="#4a5568"/>
+                        <!-- Wheels -->
+                        <circle cx="10" cy="30" r="5" fill="#333"/>
+                        <circle cx="30" cy="30" r="5" fill="#333"/>
+                        <!-- Connecting Rods (simple lines) -->
+                        <line x1="10" y1="30" x2="30" y2="30" stroke="#555" stroke-width="2"/>
                     </g>
                 </svg>
             </div>
@@ -261,6 +309,13 @@
                 destinationDisplay.textContent = "Slumpa min resa!";
                 activityDisplay.textContent = "Välj din startort och klicka för att hitta en destination.";
             }
+            // Ensure train is hidden and text is visible after selecting a new city
+            trainAnimationContainer.classList.add('hidden');
+            destinationDisplay.style.display = 'block';
+            activityDisplay.style.display = 'block';
+            destinationDisplay.style.opacity = '1';
+            activityDisplay.style.opacity = '1';
+            rouletteDisplayDiv.classList.remove('spinning');
         }
 
         // Function to calculate distance between two geographical points (Haversine formula)
@@ -340,65 +395,83 @@
         // Function to spin the roulette
         function spinRoulette() {
             if (currentDestinations.length === 0) {
+                // Custom modal for alert
                 const modal = document.createElement('div');
-                modal.className = "fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center";
+                modal.className = "modal";
                 modal.innerHTML = `
-                    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-                        <p class="mb-4 text-lg font-semibold">Vänligen välj en startort med tillgängliga destinationer.</p>
-                        <button id="closeModal" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">OK</button>
+                    <div class="modal-content">
+                        <p class="mb-4 text-lg font-semibold text-gray-800">Vänligen välj en startort med tillgängliga destinationer.</p>
+                        <button id="closeModal" class="bg-purple-700 text-white px-4 py-2 rounded-md hover:bg-purple-800 transition-colors">OK</button>
                     </div>
                 `;
                 document.body.appendChild(modal);
+                // Trigger transition after adding to DOM
+                setTimeout(() => modal.classList.add('show'), 10); 
                 document.getElementById('closeModal').addEventListener('click', () => {
-                    document.body.removeChild(modal);
+                    modal.classList.remove('show');
+                    setTimeout(() => document.body.removeChild(modal), 300); // Remove after transition
                 });
                 return;
             }
 
             spinButton.disabled = true;
             rouletteDisplayDiv.classList.add('spinning');
-
-            // Hide destination text and activity text
-            destinationDisplay.style.display = 'none';
-            activityDisplay.style.display = 'none';
-
+            
             // Show train animation and start it
             trainAnimationContainer.classList.remove('hidden');
-            trainSVG.style.animationPlayState = 'running'; // Start the train's animation
+            trainSVG.style.animationPlayState = 'running';
+
+            // Show destination text and activity text initially, they will rapidly change
+            destinationDisplay.style.display = 'block';
+            activityDisplay.style.display = 'block';
+            destinationDisplay.style.opacity = '0.7'; // Dim during spin
+            activityDisplay.style.opacity = '0.7';
 
             let spinCount = 0;
-            const totalSpins = 30;
-            const intervalTime = 100;
+            const totalSpins = 40; // More spins for a longer, more dramatic effect
+            const intervalTime = 80; // Faster interval for rapid changes
 
             const spinInterval = setInterval(() => {
                 const randomIndex = Math.floor(Math.random() * currentDestinations.length);
-                const currentSelection = currentDestinations[randomIndex];
+                const currentSpinningDestination = currentDestinations[randomIndex];
+
+                // Update text content
+                destinationDisplay.textContent = currentSpinningDestination.name;
+                activityDisplay.textContent = currentSpinningDestination.activity;
+
+                // Apply a subtle scale/fade animation for each step during spin
+                destinationDisplay.style.transform = 'scale(1.02)';
+                activityDisplay.style.transform = 'scale(1.02)';
+                setTimeout(() => {
+                    destinationDisplay.style.transform = 'scale(1)';
+                    activityDisplay.style.transform = 'scale(1)';
+                }, intervalTime / 2); // Half interval for immediate reset
 
                 spinCount++;
                 if (spinCount >= totalSpins) {
                     clearInterval(spinInterval);
 
                     // Stop the train's animation and hide it
-                    trainSVG.style.animationPlayState = 'paused'; // Pause the train's animation
+                    trainSVG.style.animationPlayState = 'paused';
                     trainAnimationContainer.classList.add('hidden');
-
-                    // Show destination text and activity text
-                    destinationDisplay.style.display = 'block';
-                    activityDisplay.style.display = 'block';
 
                     const finalIndex = Math.floor(Math.random() * currentDestinations.length);
                     const finalDestination = currentDestinations[finalIndex];
 
+                    // Final reveal animation
+                    destinationDisplay.textContent = finalDestination.name;
+                    activityDisplay.textContent = finalDestination.activity;
+                    destinationDisplay.style.opacity = '1'; // Full opacity
+                    activityDisplay.style.opacity = '1';
+
+                    destinationDisplay.style.transform = 'scale(0.8)'; // Start smaller
+                    activityDisplay.style.transform = 'scale(0.8)';
                     setTimeout(() => {
-                        destinationDisplay.textContent = finalDestination.name;
-                        activityDisplay.textContent = finalDestination.activity;
-                        destinationDisplay.style.transform = 'scale(1.1)';
-                        setTimeout(() => {
-                            destinationDisplay.style.transform = 'scale(1)';
-                            rouletteDisplayDiv.classList.remove('spinning');
-                            spinButton.disabled = false;
-                        }, 300);
-                    }, 500);
+                        destinationDisplay.style.transform = 'scale(1)'; // Pop to normal size
+                        activityDisplay.style.transform = 'scale(1)';
+                        rouletteDisplayDiv.classList.remove('spinning');
+                        spinButton.disabled = false;
+                    }, 300); // Small delay for the final pop
                 }
             }, intervalTime);
         }

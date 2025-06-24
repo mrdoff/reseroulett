@@ -232,6 +232,7 @@
 
     <script>
         // Data for all cities in Skåne with their activity suggestions and coordinates
+        // This list exclusively contains locations with train stations in Skåne.
         const allCitiesData = {
             "Malmö": { name: "Malmö", activity: "Utforska Malmöhus Slott, njut av en båttur på kanalerna ('Rundan') eller besök Disgusting Food Museum för en annorlånda upplevelse.", lat: 55.605, lon: 13.002 },
             "Lund": { name: "Lund", activity: "Upptäck Lunds Domkyrka, promenera i Botaniska trädgården eller besök Kulturen, ett friluftsmuseum.", lat: 55.7047, lon: 13.191 },
@@ -259,8 +260,42 @@
             "Osby": { name: "Osby", activity: "Njut av naturen runt Osbysjön, eller besök Brio Lekoseum.", lat: 56.3667, lon: 13.9833 },
             "Perstorp": { name: "Perstorp", activity: "Utforska den unika Perstorpsparken med dess skulpturer och grönområden.", lat: 56.1333, lon: 13.3833 },
             "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet.", lat: 55.9142, lon: 13.1044 },
-            "Munka-Ljungby": { name: "Munka-Ljungby", activity: "Ta en promenad i Munka-Ljungby Hembygdspark och upplev den lokala historien.", lat: 56.25, lon: 12.9667 },
-            "Hörby": { name: "Hörby", activity: "Besök Hörby museum, eller utforska de vackra naturområdena runt Ringsjön.", lat: 55.85, lon: 13.65 }
+            // Newly added train stations based on search results
+            "Barkåkra": { name: "Barkåkra", activity: "Upptäck den charmiga omgivningen och njut av naturen nära stationen.", lat: 56.2995, lon: 12.8718 },
+            "Billeberga": { name: "Billeberga", activity: "Upplev det skånska jordbrukslandskapet och den lokala bygden.", lat: 55.8016, lon: 12.9912 },
+            "Båstad": { name: "Båstad", activity: "Besök tennisstadion, hamnen eller den vackra strandpromenaden.", lat: 56.4357, lon: 12.8300 },
+            "Fjälkinge": { name: "Fjälkinge", activity: "Utforska den lokala bygden och historiska platser i närheten.", lat: 56.0461, lon: 14.2880 },
+            "Furulund": { name: "Furulund", activity: "Promenera längs Kävlingeån eller upptäck den lokala naturen.", lat: 55.7599, lon: 13.0487 },
+            "Gantofta": { name: "Gantofta", activity: "Njut av de gröna områdena och den lugna atmosfären i byn.", lat: 55.9868, lon: 12.8706 },
+            "Glumslöv": { name: "Glumslöv", activity: "Njut av utsikten över Öresund och de böljande fälten.", lat: 55.9328, lon: 12.8647 },
+            "Gunnesbo": { name: "Gunnesbo", activity: "Perfekt för att nå de norra delarna av Lund och dess universitetsområde.", lat: 55.7275, lon: 13.1793 },
+            "Gärsnäs": { name: "Gärsnäs", activity: "En liten ort på Österlen, känd för sin möbelindustri och charmiga omgivningar.", lat: 55.5398, lon: 14.1685 },
+            "Hjärup": { name: "Hjärup", activity: "Upplev småstadscharmen och det vackra landskapet mellan Malmö och Lund.", lat: 55.6791, lon: 13.0805 },
+            "Hyllie": { name: "Hyllie", activity: "Besök Emporia köpcentrum eller Malmö Arena, enkelt att nå evenemang.", lat: 55.5684, lon: 12.9839 },
+            "Killeberg": { name: "Killeberg", activity: "En lugn plats i norra Skåne, nära till sjöar och skogar.", lat: 56.4172, lon: 13.9880 },
+            "Klostergården": { name: "Klostergården", activity: "Utforska grönområdena och sportanläggningarna i närområdet.", lat: 55.6888, lon: 13.1819 },
+            "Kvidinge": { name: "Kvidinge", activity: "Utforska den historiska bygden och naturområdena runt Rönne å.", lat: 56.1264, lon: 13.0610 },
+            "Köpingebro": { name: "Köpingebro", activity: "En liten ort nära Ystad, med charmiga bymiljöer och omgivande natur.", lat: 55.4223, lon: 13.9015 },
+            "Lunnarp": { name: "Lunnarp", activity: "Ett jordbrukslandskap med små byar, perfekt för cykelturer.", lat: 55.5186, lon: 13.9893 },
+            "Maria": { name: "Maria", activity: "Ligger nära sjukhuset och bostadsområden i Helsingborg, en bra utgångspunkt för stadens norra delar.", lat: 56.0664, lon: 12.7937 },
+            "Marieholm": { name: "Marieholm", activity: "Upptäck den lokala historien och de gröna omgivningarna.", lat: 55.8202, lon: 13.0763 },
+            "Mörarp": { name: "Mörarp", activity: "En lugn by med närhet till Helsingborg och vacker natur.", lat: 55.9928, lon: 12.8906 },
+            "Oxie": { name: "Oxie", activity: "En lugn förort till Malmö med närhet till både natur och stadsliv.", lat: 55.5492, lon: 13.0906 },
+            "Påarp": { name: "Påarp", activity: "En liten ort norr om Helsingborg, idealisk för lugna promenader.", lat: 56.0961, lon: 12.7845 },
+            "Ramlösa": { name: "Ramlösa", activity: "Besök den historiska Ramlösa Brunnspark med sina källor och vackra omgivningar.", lat: 56.0270, lon: 12.7562 },
+            "Rosengård": { name: "Rosengård", activity: "Utforska de mångkulturella kvarteren och dess unika atmosfär i Malmö.", lat: 55.5891, lon: 13.0305 },
+            "Rydsgård": { name: "Rydsgård", activity: "En liten ort med jordbrukslandskap, perfekt för lugna promenader.", lat: 55.4800, lon: 13.4300 },
+            "Rydebäck": { name: "Rydebäck", activity: "Kustnära område med fin strand och utsikt över Öresund.", lat: 55.9400, lon: 12.7500 },
+            "Skurup": { name: "Skurup", activity: "Besök Skurups folkhögskola eller upptäck den lokala landsbygden.", lat: 55.4819, lon: 13.5681 },
+            "Smedstorp": { name: "Smedstorp", activity: "En liten by på Österlen med konst och hantverk i fokus.", lat: 55.5306, lon: 14.1083 },
+            "Stångby": { name: "Stångby", activity: "Ett lugnt område norr om Lund, nära till natur och mindre samhällen.", lat: 55.7460, lon: 13.1800 },
+            "Svarte": { name: "Svarte", activity: "En liten kustort öster om Ystad, med närhet till havet och stranden.", lat: 55.4055, lon: 13.6738 },
+            "Svågertorp": { name: "Svågertorp", activity: "En knutpunkt för handel och transport söder om Malmö.", lat: 55.5583, lon: 12.9861 },
+            "Sösdala": { name: "Sösdala", activity: "Nära Finjasjön och dess naturområden, perfekt för utomhusaktiviteter.", lat: 55.8900, lon: 13.6200 },
+            "Tjörnarp": { name: "Tjörnarp", activity: "En liten by omgiven av skog och sjöar, perfekt för avkoppling.", lat: 55.9722, lon: 13.6056 },
+            "Triangeln": { name: "Triangeln", activity: "Centralt belägen i Malmö, med direkt tillgång till shopping och stadsliv.", lat: 55.5925, lon: 13.0039 },
+            "Tyringe": { name: "Tyringe", activity: "Känd för sitt hälsohem, omgiven av vacker natur.", lat: 56.0997, lon: 13.7299 },
+            "Ödåkra": { name: "Ödåkra", activity: "En förort till Helsingborg med bra förbindelser och grönområden.", lat: 56.0880, lon: 12.7660 }
         };
 
         // Create stationConnections where each city can reach all other cities
@@ -311,6 +346,7 @@
             }
             // Ensure train is hidden and text is visible after selecting a new city
             trainAnimationContainer.classList.add('hidden');
+            trainSVG.style.animationPlayState = 'paused'; // Ensure train is paused
             destinationDisplay.style.display = 'block';
             activityDisplay.style.display = 'block';
             destinationDisplay.style.opacity = '1';

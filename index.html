@@ -182,6 +182,21 @@
         .modal.show .modal-content {
             transform: translateY(0);
         }
+
+        /* Spinner for loading indicator */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #6a0dad; /* Purple spinner */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-top: 10px; /* Space below text */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -200,6 +215,12 @@
         </select>
 
         <div id="rouletteDisplay" class="mb-8">
+            <!-- Loading Indicator for Geolocation -->
+            <div id="loadingIndicator" class="flex flex-col items-center justify-center hidden">
+                <p id="loadingText" class="text-xl font-semibold text-gray-700 mb-2">Hittar din position...</p>
+                <div class="spinner"></div>
+            </div>
+
             <!-- Train animation container -->
             <div id="train-animation-container" class="hidden">
                 <svg width="100%" height="40" viewBox="0 0 200 40" preserveAspectRatio="xMidYMid meet">
@@ -313,6 +334,8 @@
         const rouletteDisplayDiv = document.getElementById('rouletteDisplay');
         const trainAnimationContainer = document.getElementById('train-animation-container');
         const trainSVG = document.getElementById('train'); // Reference to the train SVG <g> element
+        const loadingIndicator = document.getElementById('loadingIndicator'); // New loading indicator
+        const loadingText = document.getElementById('loadingText'); // New element for loading text
 
         let currentDestinations = []; // Holds the selectable destinations
 
@@ -353,6 +376,8 @@
             destinationDisplay.style.opacity = '1';
             activityDisplay.style.opacity = '1';
             rouletteDisplayDiv.classList.remove('spinning');
+            loadingIndicator.classList.add('hidden'); // Ensure loading indicator is hidden
+            loadingText.textContent = "Hittar din position..."; // Reset loading text for next time
         }
 
         // Function to calculate distance between two geographical points (Haversine formula)
@@ -386,46 +411,87 @@
             return closestCityName;
         }
 
+        // Function to handle the geolocation result (success or error)
+        function handleGeolocationResult(position) {
+            loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            destinationDisplay.style.display = 'block'; // Show destination/activity text
+            activityDisplay.style.display = 'block';
+
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
+            const nearestCity = findNearestCity(userLat, userLon);
+
+            if (nearestCity) {
+                startCitySelect.value = nearestCity;
+                destinationDisplay.textContent = "Din närmaste stad är:";
+                activityDisplay.textContent = nearestCity + " (valt automatiskt)";
+            } else {
+                startCitySelect.value = "Malmö"; // Fallback to Malmö if no city is found
+            }
+            updateDestinations(); // Update destinations based on selection (or fallback)
+            loadingText.textContent = "Hittar din position..."; // Reset loading text for next time
+        }
+
+        // Function to handle geolocation errors
+        function handleGeolocationError(error) {
+            loadingIndicator.classList.add('hidden'); // Hide loading indicator
+            destinationDisplay.style.display = 'block'; // Show destination/activity text
+            activityDisplay.style.display = 'block';
+
+            console.error("Fel vid hämtning av plats: ", error.message || "Okänt fel vid geolokalisering.");
+            startCitySelect.value = "Malmö"; // Fallback to Malmö on error
+            updateDestinations(); // Update destinations based on fallback
+            loadingText.textContent = "Hittar din position..."; // Reset loading text for next time
+        }
+
         // Initialize the page and try to get user's location
         window.onload = () => {
             populateStartCities(); // Populate dropdown on load
             trainAnimationContainer.classList.add('hidden'); // Ensure the train is hidden on load
-            destinationDisplay.style.display = 'block';
-            activityDisplay.style.display = 'block';
+            
+            // Show loading indicator and hide destination/activity text initially
+            loadingIndicator.classList.remove('hidden');
+            destinationDisplay.style.display = 'none';
+            activityDisplay.style.display = 'none';
 
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
-                    const nearestCity = findNearestCity(userLat, userLon);
+                const geolocationOptions = {
+                    enableHighAccuracy: false, // Prioritize speed over high accuracy
+                    maximumAge: 0              // Don't use a cached position older than 0 milliseconds
+                };
 
-                    if (nearestCity) {
-                        startCitySelect.value = nearestCity;
-                        destinationDisplay.textContent = "Din närmaste stad är:";
-                        activityDisplay.textContent = nearestCity + " (valt automatiskt)";
-                        updateDestinations();
-                    } else {
-                        // Fallback if no city is found (should not happen with complete data)
-                        startCitySelect.value = "Malmö";
-                        updateDestinations();
-                        destinationDisplay.textContent = "Välj startort!";
-                        activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+                // Set a timeout to change the loading text after 5 seconds
+                const loadingTextTimeout5Sec = setTimeout(() => {
+                    if (!loadingIndicator.classList.contains('hidden')) {
+                        loadingText.textContent = "Nästan där...";
                     }
-                }, (error) => {
-                    // Handle error, e.g., if user denies location access
-                    console.error("Fel vid hämtning av plats: ", error);
-                    startCitySelect.value = "Malmö"; // Fallback to Malmö
-                    updateDestinations();
-                    destinationDisplay.textContent = "Välj startort!";
-                    activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
-                });
+                }, 5000); // 5 seconds
+
+                // Set another timeout to change the loading text after 10 seconds
+                const loadingTextTimeout10Sec = setTimeout(() => {
+                    if (!loadingIndicator.classList.contains('hidden')) {
+                        loadingText.textContent = "Nu går snart tåget...";
+                    }
+                }, 10000); // 10 seconds
+
+                // Wrap geolocation calls to clear all timeouts
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        clearTimeout(loadingTextTimeout5Sec); // Clear 5-sec timeout on success
+                        clearTimeout(loadingTextTimeout10Sec); // Clear 10-sec timeout on success
+                        handleGeolocationResult(position);
+                    },
+                    (error) => {
+                        clearTimeout(loadingTextTimeout5Sec); // Clear 5-sec timeout on error
+                        clearTimeout(loadingTextTimeout10Sec); // Clear 10-sec timeout on error
+                        handleGeolocationError(error);
+                    },
+                    geolocationOptions
+                );
             } else {
                 // Browser does not support geolocation
                 console.log("Webbläsaren stöder inte geolokalisering.");
-                startCitySelect.value = "Malmö"; // Fallback to Malmö
-                updateDestinations();
-                destinationDisplay.textContent = "Välj startort!";
-                activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+                handleGeolocationError({ message: "Webbläsaren stöder inte geolokalisering." }); // Call error handler with a message
             }
         };
 

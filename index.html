@@ -69,6 +69,22 @@
             transition: transform 0.1s ease-out, opacity 0.1s ease-out; /* Faster transitions for spin effect */
             will-change: transform, opacity; /* Optimize for animation */
         }
+        #weatherInfo {
+            font-size: 1rem;
+            color: #4a5568;
+            margin-top: 5px;
+            line-height: 1.4;
+            display: flex; /* Use flexbox for icon and text alignment */
+            align-items: center; /* Vertically align icon and text */
+            gap: 8px; /* Space between icon and text */
+            transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+            will-change: transform, opacity;
+        }
+        #weatherIcon {
+            width: 30px; /* Size for weather icon */
+            height: 30px;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
         #trainTimes {
             font-size: 0.95rem;
             color: #6a0dad; /* Matching purple */
@@ -233,7 +249,7 @@
 
         <label for="startCity" class="block text-gray-700 text-sm font-semibold mb-2">Välj startort:</label>
         <select id="startCity" class="mb-8">
-            <!-- Options will be dynamically populated here -->
+            <!-- Options will be dynamically populated here by JavaScript -->
         </select>
 
         <div id="rouletteDisplay" class="mb-8">
@@ -266,10 +282,14 @@
             </div>
             <p id="destination" class="text-gray-900 text-4xl font-extrabold"></p>
             <p id="activity" class="text-gray-700 text-lg"></p>
+            <div id="weatherInfo" class="hidden">
+                <img id="weatherIcon" src="" alt="Väderikon">
+                <span id="weatherText" class="text-gray-700"></span>
+            </div>
             <div id="trainTimes" class="hidden">
                 <h3 class="text-lg font-semibold mb-2">Nästkommande tågtider:</h3>
                 <ul id="trainTimesList">
-                    <!-- Train times will be populated here -->
+                    <!-- Train times will be populated here by JavaScript -->
                 </ul>
             </div>
         </div>
@@ -280,75 +300,75 @@
     </div>
 
     <script>
-        // Data for all cities in Skåne with their activity suggestions and coordinates
-        // Initialize stationId to null for cities that are not hardcoded
+        // Data för alla städer i Skåne med förslag på aktiviteter och koordinater
+        // stationId är satt till null för städer som inte har ett hårdkodat ID än.
         const allCitiesData = {
-            "Malmö": { name: "Malmö", activity: "Utforska Malmöhus Slott, njut av en båttur på kanalerna ('Rundan') eller besök Disgusting Food Museum för en annorlånda upplevelse.", lat: 55.605, lon: 13.002, stationId: "740000003" }, // HARDCODED STATION ID FOR MALMÖ
-            "Lund": { name: "Lund", activity: "Upptäck Lunds Domkyrka, promenera i Botaniska trädgården eller besök Kulturen, ett friluftsmuseum.", lat: 55.7047, lon: 13.191, stationId: "740000120" }, // HARDCODED STATION ID FOR LUND
-            "Helsingborg": { name: "Helsingborg", activity: "Klättra upp i Kärnan för panoramautsikt, besök Sofiero Slott och Slottsträdgård, eller koppla av på Tropical Beach.", lat: 56.0465, lon: 12.6946, stationId: "740000044" }, // HARDCODED STATION ID FOR HELSINGBORG
-            "Eslöv": { name: "Eslöv", activity: "Besök Karlsrobadet för ett äventyr i simhallen eller utforska discgolfbanan i Trollsjöområdet.", lat: 55.8392, lon: 13.3039, stationId: "740000260" }, // HARDCODED STATION ID FOR ESLÖV
+            "Malmö": { name: "Malmö", activity: "Utforska Malmöhus Slott, njut av en båttur på kanalerna ('Rundan') eller besök Disgusting Food Museum för en annorlånda upplevelse.", lat: 55.605, lon: 13.002, stationId: "740000003" }, 
+            "Lund": { name: "Lund", activity: "Upptäck Lunds Domkyrka, promenera i Botaniska trädgården eller besök Kulturen, ett friluftsmuseum.", lat: 55.7047, lon: 13.191, stationId: "740000120" }, 
+            "Helsingborg": { name: "Helsingborg", activity: "Klättra upp i Kärnan för panoramautsikt, besök Sofiero Slott och Slottsträdgård, eller koppla av på Tropical Beach.", lat: 56.0465, lon: 12.6946, stationId: "740000044" }, 
+            "Eslöv": { name: "Eslöv", activity: "Besök Karlsrobadet för ett äventyr i simhallen eller utforska discgolfbanan i Trollsjöområdet.", lat: 55.8392, lon: 13.3039, stationId: "740000260" }, 
             "Hässleholm": { name: "Hässleholm", activity: "Besök Wanås Konstpark för unik konst i naturen (kolla bussförbindelser), utforska Hässleholms historia på museet, eller ta en utflykt till Hovdala Slott.", lat: 56.1667, lon: 13.7833, stationId: "740000006" },
-            "Kristianstad": { name: "Kristianstad", activity: "Lär dig om regionens historia på Regionmuseet, beundra den vackra Heliga Trefaldighetskyrkan, eller upplev det unika biosfärområdet Vattenriket på Naturum.", lat: 56.0294, lon: 14.1593, stationId: "740000200" }, // HARDCODED STATION ID FOR Kristianstad
-            "Ystad": { name: "Ystad", activity: "Vandra genom Ystads pitoreska Gamla Stan, besök Klostret, eller följ med på en guidad tur i Wallanders fotspår.", lat: 55.42, lon: 13.83, stationId: "740000028" }, // HARDCODED STATION ID FOR Ystad
-            "Trelleborg": { name: "Trelleborg", activity: "Upptäck den rekonstruerade vikingaborgen Trelleborgen, besök Axel Ebbes Konsthall, eller strosa runt i stadskärnan.", lat: 55.37, lon: 13.16, stationId: "740000088" }, // HARDCODED STATION ID FOR Trelleborg
+            "Kristianstad": { name: "Kristianstad", activity: "Lär dig om regionens historia på Regionmuseet, beundra den vackra Heliga Trefaldighetskyrkan, eller upplev det unika biosfärområdet Vattenriket på Naturum.", lat: 56.0294, lon: 14.1593, stationId: "740000200" }, 
+            "Ystad": { name: "Ystad", activity: "Vandra genom Ystads pitoreska Gamla Stan, besök Klostret, eller följ med på en guidad tur i Wallanders fotspår.", lat: 55.42, lon: 13.83, stationId: "740000028" }, 
+            "Trelleborg": { name: "Trelleborg", activity: "Upptäck den rekonstruerade vikingaborgen Trelleborgen, besök Axel Ebbes Konsthall, eller strosa runt i stadskärnan.", lat: 55.37, lon: 13.16, stationId: "740000088" }, 
             "Höör": { name: "Höör", activity: "Tillbringa en dag på Skånes Djurpark, besök det vackra Bosjökloster Slott, eller njut av naturen vid Ringsjön med bad eller fiske.", lat: 55.9361, lon: 13.5472, stationId: "740000185" },
-            "Stehag": { name: "Stehag", activity: "Ta ett svalkande dopp vid Sjöholmens badplats (vid Ringsjön), eller vandra/springa i Gyaskogens motionsspår.", lat: 55.900, lon: 13.383, stationId: "740000952" }, // HARDCODED STATION ID FOR STEHAG
-            "Klippan": { name: "Klippan", activity: "Vandra i det vackra naturreservatet Klöva Hallar, handla kvalitetsullullprodukter på Klippans Yllefabrik, eller cykla dressin på den gamla järnvägen.", lat: 56.1333, lon: 13.1333, stationId: "740000121" }, // HARDCODED STATION ID FOR Klippan
-            "Teckomatorp": { name: "Teckomatorp", activity: "Utforska Torvalla och dess faciliteter, eller ge dig ut på en cykeltur på de omkringliggande landvägarna.", lat: 55.867, lon: 13.09, stationId: "740000011" }, // HARDCODED STATION ID FOR Teckomatorp
+            "Stehag": { name: "Stehag", activity: "Ta ett svalkande dopp vid Sjöholmens badplats (vid Ringsjön), eller vandra/springa i Gyaskogens motionsspår.", lat: 55.900, lon: 13.383, stationId: "740000952" }, 
+            "Klippan": { name: "Klippan", activity: "Vandra i det vackra naturreservatet Klöva Hallar, handla kvalitetsullullprodukter på Klippans Yllefabrik, eller cykla dressin på den gamla järnvägen.", lat: 56.1333, lon: 13.1333, stationId: "740000121" }, 
+            "Teckomatorp": { name: "Teckomatorp", activity: "Utforska Torvalla och dess faciliteter, eller ge dig ut på en cykeltur på de omkringliggande landvägarna.", lat: 55.867, lon: 13.09, stationId: "740000011" }, 
             "Landskrona": { name: "Landskrona", activity: "Besök den välbevarade fästningen Landskrona Citadell, ta en färja över till ön Ven för en cykeltur, eller utforska konst på Konsthallen.", lat: 55.8706, lon: 12.8256, stationId: "740001554" },
-            "Simrishamn": { name: "Simrishamn", activity: "Besök St. Nicolai Kyrka, strosa runt i den mysiga hamnen, eller utforska Österlens vackra landskap.", lat: 55.55, lon: 14.35, stationId: "740000169" }, // HARDCODED STATION ID FOR Simrishamn
-            "Åstorp": { name: "Åstorp", activity: "Besök Söderåsens nationalpark (kräver ev. bussbyte) eller utforska den gamla bruksorten.", lat: 56.1347, lon: 12.9472, stationId: "740000155" }, // HARDCODED STATION ID FOR Åstorp
-            "Ängelholm": { name: "Ängelholm", activity: "Strosa längs Rönne å, besök Järnvägsmuseet eller koppla av på den långa sandstranden i Sibirien.", lat: 56.2417, lon: 12.9261, stationId: "740000064" }, // HARDCODED STATION ID FOR Ängelholm
-            "Bjuv": { name: "Bjuv", activity: "Upptäck Bjuvs historia vid det gamla bruksområdet eller njut av lugnet i naturen runtomkring.", lat: 56.0833, lon: 12.9167, stationId: "740000102" }, // HARDCODED STATION ID FOR Bjuv
-            "Kävlinge": { name: "Kävlinge", activity: "Cykla längs Kävlingeån, besök vackra Kävlinge kyrka, eller utforska de lokala gårdsbutikerna.", lat: 55.7939, lon: 13.1133, stationId: "740000945" }, // HARDCODED STATION ID FOR Kävlinge
-            "Burlöv": { name: "Burlöv", activity: "Shoppa på Burlöv Center, eller ta en promenad i Arlövs grönområden.", lat: 55.6333, lon: 13.0667, stationId: "740000937" }, // HARDCODED STATION ID FOR Burlöv
-            "Lomma": { name: "Lomma", activity: "Njut av stranden i Lomma Hamn, ta en fika vid vattnet, eller promenera längs strandpromenaden.", lat: 55.6667, lon: 13.0833, stationId: "740013359" }, // HARDCODED STATION ID FOR Lomma
-            "Svedala": { name: "Svedala", activity: "Upptäck Svedala kyrka, eller njut av en lugn promenad i Svedalaparken.", lat: 55.5, lon: 13.2333, stationId: "740000397" }, // HARDCODED STATION ID FOR Svedala
-            "Tomelilla": { name: "Tomelilla", activity: "Besök Tosselilla Sommarland (säsongsöppet), utforska Fyledalen, eller upplev Österlen lyser (höstsäsong).", lat: 55.5472, lon: 13.9472, stationId: "740000323" }, // HARDCODED STATION ID FOR Tomelilla
-            "Bromölla": { name: "Bromölla", activity: "Besök Ifö Center för konst och kultur, eller utforska Ivösjön med bad- och fiskemöjligheter.", lat: 56.05, lon: 14.4667, stationId: "740098046" }, // HARDCODED STATION ID FOR Bromölla
+            "Simrishamn": { name: "Simrishamn", activity: "Besök St. Nicolai Kyrka, strosa runt i den mysiga hamnen, eller utforska Österlens vackra landskap.", lat: 55.55, lon: 14.35, stationId: "740000169" }, 
+            "Åstorp": { name: "Åstorp", activity: "Besök Söderåsens nationalpark (kräver ev. bussbyte) eller utforska den gamla bruksorten.", lat: 56.1347, lon: 12.9472, stationId: "740000155" }, 
+            "Ängelholm": { name: "Ängelholm", activity: "Strosa längs Rönne å, besök Järnvägsmuseet eller koppla av på den långa sandstranden i Sibirien.", lat: 56.2417, lon: 12.9261, stationId: "740000064" }, 
+            "Bjuv": { name: "Bjuv", activity: "Upptäck Bjuvs historia vid det gamla bruksområdet eller njut av lugnet i naturen runtomkring.", lat: 56.0833, lon: 12.9167, stationId: "740000102" }, 
+            "Kävlinge": { name: "Kävlinge", activity: "Cykla längs Kävlingeån, besök vackra Kävlinge kyrka, eller utforska de lokala gårdsbutikerna.", lat: 55.7939, lon: 13.1133, stationId: "740000945" }, 
+            "Burlöv": { name: "Burlöv", activity: "Shoppa på Burlöv Center, eller ta en promenad i Arlövs grönområden.", lat: 55.6333, lon: 13.0667, stationId: "740000937" }, 
+            "Lomma": { name: "Lomma", activity: "Njut av stranden i Lomma Hamn, ta en fika vid vattnet, eller promenera längs strandpromenaden.", lat: 55.6667, lon: 13.0833, stationId: "740013359" }, 
+            "Svedala": { name: "Svedala", activity: "Upptäck Svedala kyrka, eller njut av en lugn promenad i Svedalaparken.", lat: 55.5, lon: 13.2333, stationId: "740000397" }, 
+            "Tomelilla": { name: "Tomelilla", activity: "Besök Tosselilla Sommarland (säsongsöppet), utforska Fyledalen, eller upplev Österlen lyser (höstsäsong).", lat: 55.5472, lon: 13.9472, stationId: "740000323" }, 
+            "Bromölla": { name: "Bromölla", activity: "Besök Ifö Center för konst och kultur, eller utforska Ivösjön med bad- och fiskemöjligheter.", lat: 56.05, lon: 14.4667, stationId: "740098046" }, 
             "Osby": { name: "Osby", activity: "Njut av naturen runt Osbysjön, eller besök Brio Lekoseum.", lat: 56.3667, lon: 13.9833, stationId: "740000295" },
-            "Perstorp": { name: "Perstorp", activity: "Utforska den unika Perstorpsparken med dess skulpturer och grönområden.", lat: 56.1333, lon: 13.3833, stationId: "740000022" }, // HARDCODED STATION ID FOR Perstorp
-            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet.", lat: 55.9142, lon: 13.1044, stationId: "740012207" }, // HARDCODED STATION ID FOR Svalöv
-            "Barkåkra": { name: "Barkåkra", activity: "Upptäck den charmiga omgivningen och njut av naturen nära stationen.", lat: 56.2995, lon: 12.8718, stationId: "740001613" }, // HARDCODED STATION ID FOR Barkåkra
-            "Billeberga": { name: "Billeberga", activity: "Upplev det skånska jordbrukslandskapet och den lokala bygden.", lat: 55.8016, lon: 12.9912, stationId: "740000934" }, // HARDCODED STATION ID FOR Billeberga
+            "Perstorp": { name: "Perstorp", activity: "Utforska den unika Perstorpsparken med dess skulpturer och grönområden.", lat: 56.1333, lon: 13.3833, stationId: "740000022" }, 
+            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet.", lat: 55.9142, lon: 13.1044, stationId: "740012207" }, 
+            "Barkåkra": { name: "Barkåkra", activity: "Upptäck den charmiga omgivningen och njut av naturen nära stationen.", lat: 56.2995, lon: 12.8718, stationId: "740001613" }, 
+            "Billeberga": { name: "Billeberga", activity: "Upplev det skånska jordbrukslandskapet och den lokala bygden.", lat: 55.8016, lon: 12.9912, stationId: "740000934" }, 
             "Båstad": { name: "Båstad", activity: "Besök tennisstadion, hamnen eller den vackra strandpromenaden.", lat: 56.4357, lon: 12.8300, stationId: "740001603" },
-            "Fjälkinge": { name: "Fjälkinge", activity: "Utforska den lokala bygden och historiska platser i närheten.", lat: 56.0461, lon: 14.2880, stationId: "740001607" }, // HARDCODED STATION ID FOR Fjälkinge
-            "Furulund": { name: "Furulund", activity: "Promenera längs Kävlingeån eller upptäck den lokala naturen.", lat: 55.7599, lon: 13.0487, stationId: "740016624" }, // HARDCODED STATION ID FOR Furulund
-            "Gantofta": { name: "Gantofta", activity: "Njut av de gröna områdena och den lugna atmosfären i byn.", lat: 55.9868, lon: 12.8706, stationId: "740001555" }, // HARDCODED STATION ID FOR Gantofta
-            "Glumslöv": { name: "Glumslöv", activity: "Njut av utsikten över Öresund och de böljande fälten.", lat: 55.9328, lon: 12.8647, stationId: "740001558" }, // HARDCODED STATION ID FOR Glumslöv
-            "Gunnesbo": { name: "Gunnesbo", activity: "Perfekt för att nå de norra delarna av Lund och dess universitetsområde.", lat: 55.7275, lon: 13.1793, stationId: "740000941" }, // HARDCODED STATION ID FOR Gunnesbo
-            "Gärsnäs": { name: "Gärsnäs", activity: "En liten ort på Österlen, känd för sin möbelindustri och charmiga omgivningar.", lat: 55.5398, lon: 14.1685, stationId: "740000742" }, // HARDCODED STATION ID FOR Gärsnäs
-            "Hjärup": { name: "Hjärup", activity: "Upplev småstadscharmen och det vackra landskapet mellan Malmö och Lund.", lat: 55.6791, lon: 13.0805, stationId: "740000942" }, // HARDCODED STATION ID FOR Hjärup
-            "Hyllie": { name: "Hyllie", activity: "Besök Emporia köpcentrum eller Malmö Arena, enkelt att nå evenemang.", lat: 55.5684, lon: 12.9839, stationId: "740001586" }, // HARDCODED STATION ID FOR Hyllie
-            "Killeberg": { name: "Killeberg", activity: "En lugn plats i norra Skåne, nära till sjöar och skogar.", lat: 56.4172, lon: 13.9880, stationId: "740001605" }, // HARDCODED STATION ID FOR Killeberg
-            "Klostergården": { name: "Klostergården", activity: "Utforska grönområdena och sportanläggningarna i närområdet.", lat: 55.6888, lon: 13.1819, stationId: "740001375" }, // HARDCODED STATION ID FOR Klostergården
-            "Kvidinge": { name: "Kvidinge", activity: "Utforska den historiska bygden och naturområdena runt Rönne å.", lat: 56.1264, lon: 13.0610, stationId: "740001610" }, // HARDCODED STATION ID FOR Kvidinge
-            "Köpingebro": { name: "Köpingebro", activity: "En liten ort nära Ystad, med charmiga bymiljöer och omgivande natur.", lat: 55.4223, lon: 13.9015, stationId: "740000946" }, // HARDCODED STATION ID FOR Köpingebro
-            "Lunnarp": { name: "Lunnarp", activity: "Ett jordbrukslandskap med små byar, perfekt för cykelturer.", lat: 55.5186, lon: 13.9893, stationId: "740001234" }, // HARDCODED STATION ID FOR Lunnarp
-            "Maria": { name: "Maria", activity: "Ligger nära sjukhuset och bostadsområden i Helsingborg, en bra utgångspunkt för stadens norra delar.", lat: 56.0664, lon: 12.7937, stationId: "740001542" }, // HARDCODED STATION ID FOR Maria
-            "Marieholm": { name: "Marieholm", activity: "Upptäck den lokala historien och de gröna omgivningarna.", lat: 55.8202, lon: 13.0763, stationId: "740001616" }, // HARDCODED STATION ID FOR Marieholm
-            "Mörarp": { name: "Mörarp", activity: "En lugn by med närhet till Helsingborg och vacker natur.", lat: 55.9928, lon: 12.8906, stationId: "740011104" }, // HARDCODED STATION ID FOR Mörarp
-            "Oxie": { name: "Oxie", activity: "En lugn förort till Malmö med närhet till både natur och stadsliv.", lat: 55.5492, lon: 13.0906, stationId: "740020760" }, // HARDCODED STATION ID FOR Oxie
-            "Påarp": { name: "Påarp", activity: "En liten ort norr om Helsingborg, idealisk för lugna promenader.", lat: 56.0961, lon: 12.7845, stationId: "740000520" }, // HARDCODED STATION ID FOR Påarp
-            "Ramlösa": { name: "Ramlösa", activity: "Besök den historiska Ramlösa Brunnspark med sina källor och vackra omgivningar.", lat: 56.0270, lon: 12.7562, stationId: "740001270" }, // HARDCODED STATION ID FOR Ramlösa
-            "Rosengård": { name: "Rosengård", activity: "Utforska de mångkulturella kvarteren och dess unika atmosfär i Malmö.", lat: 55.5891, lon: 13.0305, stationId: "740001621" }, // HARDCODED STATION ID FOR Rosengård
-            "Rydsgård": { name: "Rydsgård", activity: "En liten ort med jordbrukslandskap, perfekt för lugna promenader.", lat: 55.4800, lon: 13.4300, stationId: "740000415" }, // HARDCODED STATION ID FOR Rydsgård
-            "Rydebäck": { name: "Rydebäck", activity: "Kustnära område med fin strand och utsikt över Öresund.", lat: 55.9400, lon: 12.7500, stationId: "740001557" }, // HARDCODED STATION ID FOR Rydebäck
-            "Skurup": { name: "Skurup", activity: "Besök Skurups folkhögskola eller upptäck den lokala landsbygden.", lat: 55.4819, lon: 13.5681, stationId: "740000138" }, // HARDCODED STATION ID FOR Skurup
-            "Smedstorp": { name: "Smedstorp", activity: "En liten by på Österlen med konst och hantverk i fokus.", lat: 55.5306, lon: 14.1083, stationId: "740001307" }, // HARDCODED STATION ID FOR Smedstorp
-            "Stångby": { name: "Stångby", activity: "Ett lugnt område norr om Lund, nära till natur och mindre samhällen.", lat: 55.7460, lon: 13.1800, stationId: "740000834" }, // HARDCODED STATION ID FOR Stångby
-            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet.", lat: 55.9142, lon: 13.1044, stationId: "740012207" }, // HARDCODED STATION ID FOR Svalöv
-            "Svarte": { name: "Svarte", activity: "En liten kustort öster om Ystad, med närhet till havet och stranden.", lat: 55.4055, lon: 13.6738, stationId: "740020759" }, // HARDCODED STATION ID FOR Svarte
-            "Svågertorp": { name: "Svågertorp", activity: "En knutpunkt för handel och transport söder om Malmö.", lat: 55.5583, lon: 12.9861, stationId: "740001546" }, // HARDCODED STATION ID FOR Svågertorp
-            "Sösdala": { name: "Sösdala", activity: "Nära Finjasjön och dess naturområden, perfekt för utomhusaktiviteter.", lat: 55.8900, lon: 13.6200, stationId: "740001334" }, // HARDCODED STATION ID FOR Sösdala
-            "Tjörnarp": { name: "Tjörnarp", activity: "En liten by omgiven av skog och sjöar, perfekt för avkoppling.", lat: 55.9722, lon: 13.6056, stationId: "740001611" }, // HARDCODED STATION ID FOR Tjörnarp
-            "Triangeln": { name: "Triangeln", activity: "Centralt belägen i Malmö, med direkt tillgång till shopping och stadsliv.", lat: 55.5925, lon: 13.0039, stationId: "740001588" }, // HARDCODED STATION ID FOR Triangeln (previously null, using the station ID from previous context)
-            "Tyringe": { name: "Tyringe", activity: "Känd för sitt hälsohem, omgiven av vacker natur.", lat: 56.0997, lon: 13.7299, stationId: "740000290" }, // HARDCODED STATION ID FOR Tyringe
-            "Ödåkra": { name: "Ödåkra", activity: "En förort till Helsingborg med bra förbindelser och grönområden.", lat: 56.0880, lon: 12.7660, stationId: "740001543" }, // HARDCODED STATION ID FOR Ödåkra
-            "Östra Grevie": { name: "Östra Grevie", activity: "Utforska den vackra landsbygden runt Vellinge eller besök lokala gårdsbutiker.", lat: 55.5305, lon: 13.0805, stationId: "740001614" } // HARDCODED STATION ID FOR Östra Grevie
+            "Fjälkinge": { name: "Fjälkinge", activity: "Utforska den lokala bygden och historiska platser i närheten.", lat: 56.0461, lon: 14.2880, stationId: "740001607" }, 
+            "Furulund": { name: "Furulund", activity: "Promenera längs Kävlingeån eller upptäck den lokala naturen.", lat: 55.7599, lon: 13.0487, stationId: "740016624" }, 
+            "Gantofta": { name: "Gantofta", activity: "Njut av de gröna områdena och den lugna atmosfisomhet i byn.", lat: 55.9868, lon: 12.8706, stationId: "740001555" }, 
+            "Glumslöv": { name: "Glumslöv", activity: "Njut av utsikten över Öresund och de böljande fälten.", lat: 55.9328, lon: 12.8647, stationId: "740001558" }, 
+            "Gunnesbo": { name: "Gunnesbo", activity: "Perfekt för att nå de norra delarna av Lund och dess universitetsområde.", lat: 55.7275, lon: 13.1793, stationId: "740000941" }, 
+            "Gärsnäs": { name: "Gärsnäs", activity: "En liten ort på Österlen, känd för sin möbelindustri och charmiga omgivningar.", lat: 55.5398, lon: 14.1685, stationId: "740000742" }, 
+            "Hjärup": { name: "Hjärup", activity: "Upplev småstadscharmen och det vackra landskapet mellan Malmö och Lund.", lat: 55.6791, lon: 13.0805, stationId: "740000942" }, 
+            "Hyllie": { name: "Hyllie", activity: "Besök Emporia köpcentrum eller Malmö Arena, enkelt att nå evenemang.", lat: 55.5684, lon: 12.9839, stationId: "740001586" }, 
+            "Killeberg": { name: "Killeberg", activity: "En lugn plats i norra Skåne, nära till sjöar och skogar.", lat: 56.4172, lon: 13.9880, stationId: "740001605" }, 
+            "Klostergården": { name: "Klostergården", activity: "Utforska grönområdena och sportanläggningarna i närområdet.", lat: 55.6888, lon: 13.1819, stationId: "740001375" }, 
+            "Kvidinge": { name: "Kvidinge", activity: "Utforska den historiska bygden och naturområdena runt Rönne å.", lat: 56.1264, lon: 13.0610, stationId: "740001610" }, 
+            "Köpingebro": { name: "Köpingebro", activity: "En liten ort nära Ystad, med charmiga bymiljöer och omgivande natur.", lat: 55.4223, lon: 13.9015, stationId: "740000946" }, 
+            "Lunnarp": { name: "Lunnarp", activity: "Ett jordbrukslandskap med små byar, perfekt för cykelturer.", lat: 55.5186, lon: 13.9893, stationId: "740001234" }, 
+            "Maria": { name: "Maria", activity: "Ligger nära sjukhuset och bostadsområden i Helsingborg, en bra utgångspunkt för stadens norra delar.", lat: 56.0664, lon: 12.7937, stationId: "740001542" }, 
+            "Marieholm": { name: "Marieholm", activity: "Upptäck den lokala historien och de gröna omgivningarna.", lat: 55.8202, lon: 13.0763, stationId: "74001616" }, 
+            "Mörarp": { name: "Mörarp", activity: "En lugn by med närhet till Helsingborg och vacker natur.", lat: 55.9928, lon: 12.8906, stationId: "740011104" }, 
+            "Oxie": { name: "Oxie", activity: "En lugn förort till Malmö med närhet till både natur och stadsliv.", lat: 55.5492, lon: 13.0906, stationId: "740020760" }, 
+            "Påarp": { name: "Påarp", activity: "En liten ort norr om Helsingborg, idealisk för lugna promenader.", lat: 56.0961, lon: 12.7845, stationId: "740000520" }, 
+            "Ramlösa": { name: "Ramlösa", activity: "Besök den historiska Ramlösa Brunnspark med sina källor och vackra omgivningar.", lat: 56.0270, lon: 12.7562, stationId: "740001270" }, 
+            "Rosengård": { name: "Rosengård", activity: "Utforska de mångkulturella kvarteren och dess unika atmosfär i Malmö.", lat: 55.5891, lon: 13.0305, stationId: "740001621" }, 
+            "Rydsgård": { name: "Rydsgård", activity: "En liten ort med jordbrukslandskap, perfekt för lugna promenader.", lat: 55.4800, lon: 13.4300, stationId: "740000415" }, 
+            "Rydebäck": { name: "Rydebäck", activity: "Kustnära område med fin strand och utsikt över Öresund.", lat: 55.9400, lon: 12.7500, stationId: "740001557" }, 
+            "Skurup": { name: "Skurup", activity: "Besök Skurups folkhögskola eller upptäck den lokala landsbygden.", lat: 55.4819, lon: 13.5681, stationId: "740000138" }, 
+            "Smedstorp": { name: "Smedstorp", activity: "En liten by på Österlen med konst och hantverk i fokus.", lat: 55.5306, lon: 14.1083, stationId: "740001307" }, 
+            "Stångby": { name: "Stångby", activity: "Ett lugnt område norr om Lund, nära till natur och mindre samhällen.", lat: 55.7460, lon: 13.1800, stationId: "740000834" }, 
+            "Svalöv": { name: "Svalöv", activity: "Besök Svalövs bibliotek, eller utforska de lokala cykellederna i det vackra jordbrukslandskapet.", lat: 55.9142, lon: 13.1044, stationId: "740012207" }, 
+            "Svarte": { name: "Svarte", activity: "En liten kustort öster om Ystad, med närhet till havet och stranden.", lat: 55.4055, lon: 13.6738, stationId: "740020759" }, 
+            "Svågertorp": { name: "Svågertorp", activity: "En knutpunkt för handel och transport söder om Malmö.", lat: 55.5583, lon: 12.9861, stationId: "740001546" }, 
+            "Sösdala": { name: "Sösdala", activity: "Nära Finjasjön och dess naturområden, perfekt för utomhusaktiviteter.", lat: 55.8900, lon: 13.6200, stationId: "740001334" }, 
+            "Tjörnarp": { name: "Tjörnarp", activity: "En liten by omgiven av skog och sjöar, perfekt för avkoppling.", lat: 55.9722, lon: 13.6056, stationId: "740001611" }, 
+            "Triangeln": { name: "Triangeln", activity: "Centralt belägen i Malmö, med direkt tillgång till shopping och stadsliv.", lat: 55.5925, lon: 13.0039, stationId: "740001588" }, 
+            "Tyringe": { name: "Tyringe", activity: "Känd för sitt hälsohem, omgiven av vacker natur.", lat: 56.0997, lon: 13.7299, stationId: "740000290" }, 
+            "Ödåkra": { name: "Ödåkra", activity: "En förort till Helsingborg med bra förbindelser och grönområden.", lat: 56.0880, lon: 12.7660, stationId: "740001543" }, 
+            "Östra Grevie": { name: "Östra Grevie", activity: "Utforska den vackra landsbygden runt Vellinge eller besök lokala gårdsbutiker.", lat: 55.5305, lon: 13.0805, stationId: "740001614" } 
         };
 
-        // Create stationConnections where each city can reach all other cities
+        // Skapa stationConnections där varje stad kan nå alla andra städer
         const stationConnections = {};
         const allCityNames = Object.keys(allCitiesData);
         allCityNames.forEach(startCity => {
@@ -356,27 +376,34 @@
         });
 
         const API_KEY = "3ecf0515-aa56-46a0-b8b3-6656547bd0e7"; // Din API-nyckel för Resrobot v2.1
+        const OPEN_WEATHER_API_KEY = "YOUR_OPENWEATHER_API_KEY"; // ERSÄTT MED DIN OpenWeatherMap API-NYCKEL!
 
+        // Hämta DOM-element och lägg till säkerhetskontroller
         const spinButton = document.getElementById('spinButton');
         const startCitySelect = document.getElementById('startCity');
         const destinationDisplay = document.getElementById('destination');
         const activityDisplay = document.getElementById('activity');
+        const weatherInfoDiv = document.getElementById('weatherInfo'); 
+        const weatherIcon = document.getElementById('weatherIcon');   
+        const weatherText = document.getElementById('weatherText');   
         const rouletteDisplayDiv = document.getElementById('rouletteDisplay');
         const trainAnimationContainer = document.getElementById('train-animation-container');
-        const trainSVG = document.getElementById('train'); // Reference to the train SVG <g> element
-        const loadingIndicator = document.getElementById('loadingIndicator'); // New loading indicator
-        const loadingText = document.getElementById('loadingText'); // New element for loading text
-        const trainTimesDiv = document.getElementById('trainTimes'); // New element for train times container
-        const trainTimesList = document.getElementById('trainTimesList'); // New element for train times list
+        const trainSVG = document.getElementById('train'); 
+        const loadingIndicator = document.getElementById('loadingIndicator'); 
+        const loadingText = document.getElementById('loadingText'); 
+        const trainTimesDiv = document.getElementById('trainTimes'); 
+        const trainTimesList = document.getElementById('trainTimesList'); 
 
-        let currentDestinations = []; // Holds the selectable destinations
+        let currentDestinations = []; 
 
-        // Function to populate the dropdown menu with all start cities
+        // Funktion för att fylla dropdown-menyn med alla startstäder
         function populateStartCities() {
-            // Populate with ALL cities as requested
+            if (!startCitySelect) {
+                console.error("populateStartCities: 'startCitySelect' elementet hittades inte.");
+                return; 
+            }
             const cities = Object.keys(allCitiesData).sort();
             
-            // Clear existing options first
             startCitySelect.innerHTML = ''; 
 
             cities.forEach(city => {
@@ -387,12 +414,17 @@
             });
         }
 
-        // Update the list of destinations based on the selected start city
+        // Uppdatera listan över destinationer baserat på vald startstad
         function updateDestinations() {
+            // Säkerställ att alla element finns innan du fortsätter
+            if (!startCitySelect || !spinButton || !destinationDisplay || !activityDisplay || !weatherInfoDiv || !trainAnimationContainer || !trainSVG || !rouletteDisplayDiv || !loadingIndicator || !loadingText || !trainTimesDiv || !trainTimesList) {
+                console.error("updateDestinations: Något obligatoriskt DOM-element saknas.");
+                return; 
+            }
+
             const selectedStartCity = startCitySelect.value;
             const reachableCityNames = stationConnections[selectedStartCity] || [];
 
-            // Filter currentDestinations to only include cities that have a valid stationId AND are reachable
             currentDestinations = reachableCityNames
                 .filter(cityName => {
                     const cityData = allCitiesData[cityName];
@@ -400,36 +432,34 @@
                 })
                 .map(cityName => allCitiesData[cityName]);
 
-            if (allCitiesData[selectedStartCity].stationId === null) {
+            if (allCitiesData[selectedStartCity].stationId === null || currentDestinations.length === 0) {
                 spinButton.disabled = true;
-                destinationDisplay.textContent = `Kunde inte hämta tågdata för ${selectedStartCity}.`;
+                destinationDisplay.textContent = `Kunde inte hämta tågdata för ${selectedStartCity} eller inga destinationer hittades.`; 
                 activityDisplay.textContent = "Välj en annan startort eller försök igen senare.";
-            } else if (currentDestinations.length === 0) {
-                spinButton.disabled = true;
-                destinationDisplay.textContent = "Inga destinationer hittades från " + selectedStartCity + ".";
-                activityDisplay.textContent = "Välj en annan startort.";
             } else {
                 spinButton.disabled = false;
                 destinationDisplay.textContent = "Slumpa min resa!";
                 activityDisplay.textContent = "Välj din startort och klicka för att hitta en destination.";
             }
-            // Ensure train is hidden and text is visible after selecting a new city
+            // Se till att tåget är dolt och texten synlig efter att en ny stad valts
             trainAnimationContainer.classList.add('hidden');
-            trainSVG.style.animationPlayState = 'paused'; // Ensure train is paused
+            trainSVG.style.animationPlayState = 'paused'; 
             destinationDisplay.style.display = 'block';
-            activityDisplay.style.display = 'block';
+            activityDisplay.style.display = 'block'; // Visa aktivitetstext
+            weatherInfoDiv.classList.add('hidden'); // Dölj väderinfo vid stadsbyte
+            weatherInfoDiv.style.display = 'none'; // Se till att den är dold
             destinationDisplay.style.opacity = '1';
             activityDisplay.style.opacity = '1';
             rouletteDisplayDiv.classList.remove('spinning');
-            loadingIndicator.classList.add('hidden'); // Ensure loading indicator is hidden
-            loadingText.textContent = "Hittar din position..."; // Reset loading text for next time
-            trainTimesDiv.classList.add('hidden'); // Hide train times when new selection is made
-            trainTimesList.innerHTML = ''; // Clear previous train times
+            loadingIndicator.classList.add('hidden'); 
+            loadingText.textContent = "Hittar din position..."; 
+            trainTimesDiv.classList.add('hidden'); 
+            trainTimesList.innerHTML = ''; 
         }
 
-        // Function to calculate distance between two geographical points (Haversine formula)
+        // Funktion för att beräkna avståndet mellan två geografiska punkter (Haversine-formeln)
         function haversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Earth's radius in kilometers
+            const R = 6371; // Jordens radie i kilometer
             const dLat = (lat2 - lat1) * (Math.PI / 180);
             const dLon = (lon2 - lon1) * (Math.PI / 180);
             const a =
@@ -437,20 +467,19 @@
                 Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-            return R * c; // Distance in kilometers
+            return R * c; // Avstånd i kilometer
         }
 
-        // Attempt to find the nearest city based on user's location
+        // Försök att hitta närmaste stad baserat på användarens plats
         function findNearestCity(latitude, longitude) {
             let closestCityName = '';
             let minDistance = Infinity;
 
-            // Only consider cities for which we successfully fetched a stationId
             const citiesWithStationIds = Object.keys(allCitiesData).filter(cityName => allCitiesData[cityName].stationId !== null);
 
             if (citiesWithStationIds.length === 0) {
                 console.warn("Inga städer med giltiga stations-ID att jämföra med för geolokalisering.");
-                return null; // Return null if no cities have IDs
+                return null; 
             }
 
             for (const cityName of citiesWithStationIds) {
@@ -465,263 +494,305 @@
         }
 
         /**
-         * Fetches station IDs for all cities from the Resrobot API using location.name endpoint.
-         * Updates the allCitiesData object with stationId.
-         * @returns {Promise<void>} Resolves when all IDs are processed.
+         * Hämtar stations-ID för alla städer från Resrobots API med location.name endpoint.
+         * Uppdaterar allCitiesData-objeket med stationId.
+         * @returns {Promise<void>} Resolves när alla ID har behandlats.
          */
-        async function fetchAllStationIds() {
+        function fetchAllStationIds() {
             const cityNames = Object.keys(allCitiesData);
-            const fetchPromises = cityNames.map(async (cityName) => {
+            const fetchPromises = cityNames.map(cityName => {
                 const city = allCitiesData[cityName];
-                // If stationId is already hardcoded or successfully fetched, skip API call
                 if (city.stationId !== null && city.stationId !== undefined) { 
-                    return; 
+                    return Promise.resolve(); // Returnera en redan löst Promise om ID finns
                 }
                 
-                try {
-                    const response = await fetch(`https://api.resrobot.se/v2.1/location.name?input=${encodeURIComponent(cityName)}&format=json&accessId=${API_KEY}`);
-                    if (!response.ok) {
-                        console.warn(`HTTP error fetching stationId for ${cityName}: ${response.status}`);
-                        return;
-                    }
-                    const data = await response.json();
-                    if (data.StopLocation && data.StopLocation.length > 0) {
-                        // Try to find an exact match first for name and type (e.g., station/stop)
-                        const exactMatch = data.StopLocation.find(sl => 
-                            sl.name.toLowerCase().includes(cityName.toLowerCase()) && // Use includes for broader match
-                            (sl.type === 'station' || sl.type === 'stop')
-                        );
-                        if (exactMatch) {
-                            city.stationId = exactMatch.id;
-                        } else {
-                            // Fallback to the first result if no exact match but results exist, prefer station/stop
-                            const firstRelevant = data.StopLocation.find(sl => sl.type === 'station' || sl.type === 'stop') || data.StopLocation[0];
-                            city.stationId = firstRelevant.id;
-                            console.warn(`Ingen exakt stationsmatch för ${cityName}, använder första relevanta: ${firstRelevant.name || firstRelevant.id}`);
+                return fetch(`https://api.resrobot.se/v2.1/location.name?input=${encodeURIComponent(cityName)}&format=json&accessId=${API_KEY}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            console.warn(`HTTP error fetching stationId for ${cityName}: ${response.status}`);
+                            return null; // Returnera null för att indikera att inget ID hittades/fel
                         }
-                    } else {
-                        console.warn(`Kunde inte hitta stationId för ${cityName}. Exkluderar denna ort från API-sökningar.`);
-                        city.stationId = null; // Explicitly set to null if not found to avoid re-attempts
-                    }
-                } catch (error) {
-                    console.error(`Fel vid hämtning av stationId för ${cityName}:`, error);
-                    city.stationId = null; // Explicitly set to null on error
-                }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.StopLocation && data.StopLocation.length > 0) {
+                            const exactMatch = data.StopLocation.find(sl => 
+                                sl.name.toLowerCase().includes(cityName.toLowerCase()) && 
+                                (sl.type === 'station' || sl.type === 'stop')
+                            );
+                            if (exactMatch) {
+                                city.stationId = exactMatch.id;
+                            } else {
+                                const firstRelevant = data.StopLocation.find(sl => sl.type === 'station' || sl.type === 'stop') || data.StopLocation[0];
+                                city.stationId = firstRelevant.id;
+                                console.warn(`Ingen exakt stationsmatch för ${cityName}, använder första relevanta: ${firstRelevant.name || firstRelevant.id}`);
+                            }
+                        } else {
+                            console.warn(`Kunde inte hitta stationId för ${cityName}. Exkluderar denna ort från API-sökningar.`);
+                            city.stationId = null; 
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Fel vid hämtning av stationId för ${cityName}:`, error);
+                        city.stationId = null; 
+                    });
             });
-            await Promise.allSettled(fetchPromises); // Wait for all promises to settle, regardless of success/failure
+            return Promise.all(fetchPromises); // Vänta på att alla Promise har lösts
         }
 
         /**
-         * Fetches real train times between two cities using the Resrobot API.
-         * @param {string} startCityName The name of the starting city.
-         * @param {string} destinationCityName The name of the destination city.
-         * @returns {Promise<string[]>} An array of strings representing upcoming train times.
+         * Hämtar verkliga tågtider mellan två städer med Resrobots API.
+         * @param {string} startCityName Namnet på startstaden.
+         * @param {string} destinationCityName Namnet på destinationsstaden.
+         * @returns {Promise<string[]>} En array av strängar som representerar kommande tågtider.
          */
-        async function fetchTrainTimes(startCityName, destinationCityName) {
-            // Use optional chaining for safer access, and provide fallback to null
+        function fetchTrainTimes(startCityName, destinationCityName) {
             const originStationId = allCitiesData[startCityName]?.stationId || null;
             const destinationStationId = allCitiesData[destinationCityName]?.stationId || null;
 
             if (!originStationId) {
                 console.error(`ERROR: originStationId saknas för ${startCityName}. Data:`, allCitiesData[startCityName]);
-                return [`Kunde inte hämta tågtider (Startort '${startCityName}' saknar stationsdata).`];
+                return Promise.resolve([`Kunde inte hämta tågtider (Startort '${startCityName}' saknar stationsdata).`]);
             }
             if (!destinationStationId) {
                 console.error(`ERROR: destinationStationId saknas för ${destinationCityName}. Data:`, allCitiesData[destinationCityName]);
-                return [`Kunde inte hämta tågtider (Destination '${destinationCityName}' saknar stationsdata).`];
+                return Promise.resolve([`Kunde inte hämta tågtider (Destination '${destinationCityName}' saknar stationsdata).`]);
             }
 
-            // Constructing the URL exactly as requested by the user, and re-added maxJourneys for result limiting
             const apiUrl = `https://api.resrobot.se/v2.1/trip?format=json&originId=${originStationId}&destId=${destinationStationId}&passlist=true&showPassingPoints=true&maxJourneys=3&accessId=${API_KEY}`;
             
-            // Log the API URL for debugging
             console.log("API-anrop URL:", apiUrl);
 
-            try {
-                const response = await fetch(apiUrl);
-                if (!response.ok) {
-                    // Log the full URL for debugging
-                    console.error(`API URL som misslyckades: ${apiUrl}`);
-                    throw new Error(`HTTP-fel! status: ${response.status} - ${response.statusText}`);
-                }
-                const data = await response.json();
-                
-                // Log the entire API response data for debugging
-                console.log("Hela API-svaret:", data);
-
-                const times = [];
-                if (data.Trip && data.Trip.length > 0) {
-                    for (let i = 0; i < data.Trip.length; i++) {
-                        const trip = data.Trip[i];
-                        // Corrected: Access Leg from LegList
-                        if (trip.LegList && trip.LegList.Leg && trip.LegList.Leg.length > 0) {
-                            const firstLeg = trip.LegList.Leg[0];
-                            const lastLeg = trip.LegList.Leg[trip.LegList.Leg.length - 1]; 
-
-                            // Scheduled times
-                            const schedOriginDateTime = new Date(`${firstLeg.Origin.date}T${firstLeg.Origin.time}`);
-                            const schedDestDateTime = new Date(`${lastLeg.Destination.date}T${lastLeg.Destination.time}`);
-
-                            // Real-time (prognosed) times, if available. Fallback to scheduled if not present.
-                            const effectiveOriginDate = firstLeg.Origin.rtDate || firstLeg.Origin.date;
-                            const effectiveOriginTime = firstLeg.Origin.rtTime || firstLeg.Origin.time;
-                            const effectiveDestDate = lastLeg.Destination.rtDate || lastLeg.Destination.date;
-                            const effectiveDestTime = lastLeg.Destination.rtTime || lastLeg.Destination.time;
-
-                            const effectiveOriginDateTime = new Date(`${effectiveOriginDate}T${effectiveOriginTime}`);
-                            const effectiveDestDateTime = new Date(`${effectiveDestDate}T${effectiveDestTime}`);
-
-                            const depFormatted = effectiveOriginDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-                            const arrFormatted = effectiveDestDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-
-                            let depStatusText = '';
-                            let arrStatusText = '';
-                            let hasDeviation = false; // Flag to track if any deviation exists for this trip
-
-                            // Determine prognosis type for departure
-                            if (effectiveOriginDateTime.getTime() > schedOriginDateTime.getTime() + 60000) { // +60s tolerance for "delayed"
-                                depStatusText = '(försenad)';
-                                hasDeviation = true;
-                            } else if (effectiveOriginDateTime.getTime() < schedOriginDateTime.getTime() - 60000) { // -60s tolerance for "early"
-                                depStatusText = '(tidig)';
-                                hasDeviation = true;
-                            } 
-                            // If it's "i tid", depStatusText remains empty as per new requirement
-
-                            // Determine prognosis type for arrival
-                            if (effectiveDestDateTime.getTime() > schedDestDateTime.getTime() + 60000) { // +60s tolerance
-                                arrStatusText = '(försenad)';
-                                hasDeviation = true;
-                            } else if (effectiveDestDateTime.getTime() < schedDestDateTime.getTime() - 60000) { // -60s tolerance
-                                arrStatusText = '(tidig)';
-                                hasDeviation = true;
-                            } 
-                            // If it's "i tid", arrStatusText remains empty
-
-                            // Build the formatted string, including a warning if there was any deviation
-                            let formattedTimeString = `Avgår: ${depFormatted} ${depStatusText} (${startCityName}) - Ankommer: ${arrFormatted} ${arrStatusText} (${destinationCityName})`;
-                            
-                            if (hasDeviation) {
-                                formattedTimeString += " (OBS: Avvikelse!)";
-                            }
-
-                            times.push(formattedTimeString);
-                            console.log("Formaterad tågtid för display:", formattedTimeString); 
-                        }
+            return fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        console.error(`API URL som misslyckades: ${apiUrl}`);
+                        throw new Error(`HTTP-fel! status: ${response.status} - ${response.statusText}`);
                     }
-                } else {
-                    times.push("Inga tågtider hittades för denna sträcka just nu.");
-                }
-                return times;
-            } catch (error) {
-                console.error("Fel vid hämtning av tågtider från Resrobot API:", error);
-                return [`Kunde inte hämta tågtider (API-fel: ${error.message}). Kontrollera konsolen för mer information.`];
-            }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Hela API-svaret:", data);
+                    const times = [];
+                    if (data.Trip && data.Trip.length > 0) {
+                        for (let i = 0; i < data.Trip.length; i++) {
+                            const trip = data.Trip[i];
+                            if (trip.LegList && trip.LegList.Leg && trip.LegList.Leg.length > 0) {
+                                const firstLeg = trip.LegList.Leg[0];
+                                const lastLeg = trip.LegList.Leg[trip.LegList.Leg.length - 1]; 
+
+                                const schedOriginDateTime = new Date(`${firstLeg.Origin.date}T${firstLeg.Origin.time}`);
+                                const schedDestDateTime = new Date(`${lastLeg.Destination.date}T${lastLeg.Destination.time}`);
+
+                                const effectiveOriginDate = firstLeg.Origin.rtDate || firstLeg.Origin.date;
+                                const effectiveOriginTime = firstLeg.Origin.rtTime || firstLeg.Origin.time;
+                                const effectiveDestDate = lastLeg.Destination.rtDate || lastLeg.Destination.date;
+                                const effectiveDestTime = lastLeg.Destination.rtTime || lastLeg.Destination.time;
+
+                                const effectiveOriginDateTime = new Date(`${effectiveOriginDate}T${effectiveOriginTime}`);
+                                const effectiveDestDateTime = new Date(`${effectiveDestDate}T${effectiveDestTime}`);
+
+                                const depFormatted = effectiveOriginDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+                                const arrFormatted = effectiveDestDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+
+                                let depStatusText = '';
+                                let arrStatusText = '';
+                                let hasDeviation = false; 
+
+                                if (effectiveOriginDateTime.getTime() > schedOriginDateTime.getTime() + 60000) { 
+                                    depStatusText = '(försenad)';
+                                    hasDeviation = true;
+                                } else if (effectiveOriginDateTime.getTime() < schedOriginDateTime.getTime() - 60000) { 
+                                    depStatusText = '(tidig)';
+                                    hasDeviation = true;
+                                } 
+
+                                if (effectiveDestDateTime.getTime() > schedDestDateTime.getTime() + 60000) { 
+                                    arrStatusText = '(försenad)';
+                                    hasDeviation = true;
+                                } else if (effectiveDestDateTime.getTime() < schedDestDateTime.getTime() - 60000) { 
+                                    arrStatusText = '(tidig)';
+                                    hasDeviation = true;
+                                } 
+
+                                let formattedTimeString = `Avgår: ${depFormatted} ${depStatusText} (${startCityName}) - Ankommer: ${arrFormatted} ${arrStatusText} (${destinationCityName})`;
+                                
+                                if (hasDeviation) {
+                                    formattedTimeString += " (OBS: Avvikelse!)";
+                                }
+
+                                times.push(formattedTimeString);
+                                console.log("Formaterad tågtid för display:", formattedTimeString); 
+                            }
+                        }
+                    } else {
+                        times.push("Inga tågtider hittades för denna sträcka just nu.");
+                    }
+                    return times;
+                })
+                .catch(error => {
+                    console.error("Fel vid hämtning av tågtider från Resrobot API:", error);
+                    return [`Kunde inte hämta tågtider (API-fel: ${error.message}). Kontrollera konsolen för mer information.`];
+                });
         }
 
+        /**
+         * Hämtar aktuell väderdata för givna koordinater.
+         * @param {number} lat Latitud för platsen.
+         * @param {number} lon Longitud för platsen.
+         * @returns {Promise<{temp: number, description: string, icon: string}|null>} Väderdata eller null vid fel.
+         */
+        function fetchWeatherData(lat, lon) {
+            if (!OPEN_WEATHER_API_KEY || OPEN_WEATHER_API_KEY === "YOUR_OPENWEATHER_API_KEY") {
+                console.warn("OpenWeatherMap API Key saknas eller är inte inställd. Väderdata kommer inte att hämtas.");
+                return Promise.resolve(null); // Returnera en Promise som omedelbart löses till null
+            }
 
-        // Function to handle the geolocation result (success or error)
+            const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API_KEY}&units=metric&lang=sv`;
+            console.log("Väder API-anrop URL:", weatherApiUrl);
+
+            return fetch(weatherApiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        console.error(`HTTP error fetching weather data! Status: ${response.status} - ${response.statusText}`);
+                        return null; // Vid fel, passera null vidare
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Väder API-svar:", data);
+
+                    if (data && data.main && data.weather && data.weather.length > 0) {
+                        return {
+                            temp: Math.round(data.main.temp),
+                            description: data.weather[0].description,
+                            icon: `https://openweathermap.org/img/wn/${data.weather[0].icon}.png`
+                        };
+                    }
+                    return null;
+                })
+                .catch(error => {
+                    console.error("Fel vid hämtning av väderdata:", error);
+                    return null; // Vid fel, passera null vidare
+                });
+        }
+
+        // Funktion för att hantera geolokaliseringsresultatet (framgång eller fel)
         function handleGeolocationResult(position) {
+            if (!startCitySelect || !destinationDisplay || !activityDisplay) {
+                console.error("handleGeolocationResult: Något obligatoriskt DOM-element saknas.");
+                return; 
+            }
             const userLat = position.coords.latitude;
             const userLon = position.coords.longitude;
             const nearestCity = findNearestCity(userLat, userLon);
 
-            // Set the dropdown value, but don't update destinations yet
             if (nearestCity && allCitiesData[nearestCity] && allCitiesData[nearestCity].stationId !== null) {
                 startCitySelect.value = nearestCity;
                 destinationDisplay.textContent = "Din närmaste stad är:";
                 activityDisplay.textContent = nearestCity + " (valt automatiskt)";
             } else {
-                startCitySelect.value = "Malmö"; // Fallback to Malmö if nearest city has no stationId or not found
+                startCitySelect.value = "Malmö"; 
                 destinationDisplay.textContent = "Välj startort!";
                 activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
             }
         }
 
-        // Function to handle geolocation errors
+        // Funktion för att hantera geolokaliseringsfel
         function handleGeolocationError(error) {
+            if (!startCitySelect || !destinationDisplay || !activityDisplay) {
+                console.error("handleGeolocationError: Något obligatoriskt DOM-element saknas.");
+                return; 
+            }
             console.error("Fel vid hämtning av plats: ", error.message || "Okänt fel vid geolokalisering.");
-            startCitySelect.value = "Malmö"; // Fallback to Malmö on error
+            startCitySelect.value = "Malmö"; 
             destinationDisplay.textContent = "Välj startort!";
             activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
         }
 
-        // Initialize the page and try to get user's location and station data
-        window.onload = async () => {
-            // Show loading indicator and hide main content initially
+        document.addEventListener('DOMContentLoaded', function() {
+            // Säkerhetskontroller för DOM-element
+            if (!spinButton || !startCitySelect || !destinationDisplay || !activityDisplay || !weatherInfoDiv || !weatherIcon || !weatherText || !rouletteDisplayDiv || !trainAnimationContainer || !trainSVG || !loadingIndicator || !loadingText || !trainTimesDiv || !trainTimesList) {
+                console.error("Kunde inte hitta alla nödvändiga DOM-element vid DOMContentLoaded. Funktionen stoppas.");
+                return;
+            }
+
+            // Visa laddningsindikator och dölj huvudsinnehållet initialt
             loadingIndicator.classList.remove('hidden');
             destinationDisplay.style.display = 'none';
             activityDisplay.style.display = 'none';
-            trainTimesDiv.classList.add('hidden'); // Hide train times initially
-            startCitySelect.disabled = true; // Disable dropdown during initial load
-            spinButton.disabled = true;     // Disable spin button during initial load
+            weatherInfoDiv.classList.add('hidden');
+            weatherInfoDiv.style.display = 'none';
+            trainTimesDiv.classList.add('hidden');
+            startCitySelect.disabled = true;
+            spinButton.disabled = true;
 
-            // --- Step 1: Geolocation (run in background, but don't block for UI updates) ---
             let geolocationFinished = false;
+
+            function finalizeLoadProcess() {
+                loadingText.textContent = "Laddar tågstationsdata...";
+                fetchAllStationIds()
+                    .then(() => {
+                        populateStartCities();
+                        loadingIndicator.classList.add('hidden');
+                        destinationDisplay.style.display = 'block';
+                        activityDisplay.style.display = 'block';
+                        startCitySelect.disabled = false;
+                        updateDestinations();
+                        loadingText.textContent = "Hittar din position...";
+                    })
+                    .catch(error => {
+                        console.error("Fel vid laddning av stationsdata:", error);
+                        // Fortsätt laddning även vid fel för att undvika att appen låser sig
+                        loadingIndicator.classList.add('hidden');
+                        destinationDisplay.style.display = 'block';
+                        activityDisplay.style.display = 'block';
+                        startCitySelect.disabled = false;
+                        updateDestinations(); // Uppdatera med eventuella felmeddelanden
+                    });
+            }
+
             if (navigator.geolocation) {
-                const geolocationOptions = {
-                    enableHighAccuracy: false,
-                    maximumAge: 0
-                };
-
-                const loadingTextTimeout5Sec = setTimeout(() => {
-                    if (!loadingIndicator.classList.contains('hidden') && !geolocationFinished) {
-                        loadingText.textContent = "Nästan där...";
-                    }
+                const timeout1 = setTimeout(() => {
+                    if (!geolocationFinished) loadingText.textContent = "Nästan där...";
                 }, 5000);
-
-                const loadingTextTimeout10Sec = setTimeout(() => {
-                    if (!loadingIndicator.classList.contains('hidden') && !geolocationFinished) {
-                        loadingText.textContent = "Nu går snart tåget...";
-                    }
+                const timeout2 = setTimeout(() => {
+                    if (!geolocationFinished) loadingText.textContent = "Nu går snart tåget...";
                 }, 10000);
 
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
+                    function(position) {
                         geolocationFinished = true;
-                        clearTimeout(loadingTextTimeout5Sec);
-                        clearTimeout(loadingTextTimeout10Sec);
+                        clearTimeout(timeout1);
+                        clearTimeout(timeout2);
                         handleGeolocationResult(position);
-                        // Continue to fetch station IDs after geolocation is done
                         finalizeLoadProcess();
                     },
-                    (error) => {
+                    function(error) {
                         geolocationFinished = true;
-                        clearTimeout(loadingTextTimeout5Sec);
-                        clearTimeout(loadingTextTimeout10Sec);
+                        clearTimeout(timeout1);
+                        clearTimeout(timeout2);
                         handleGeolocationError(error);
-                        // Continue to fetch station IDs even if geolocation fails
                         finalizeLoadProcess();
-                    },
-                    geolocationOptions
+                    }
                 );
             } else {
                 console.log("Webbläsaren stöder inte geolokalisering.");
                 handleGeolocationError({ message: "Webbläsaren stöder inte geolokalisering." });
-                finalizeLoadProcess(); // Continue without geolocation
+                finalizeLoadProcess();
+            }
+        });
+
+        // Funktion för att snurra rouletten
+        function spinRoulette() { 
+            // Säkerställ att alla element finns innan du fortsätter
+            if (!startCitySelect || !spinButton || !destinationDisplay || !activityDisplay || !weatherInfoDiv || !trainAnimationContainer || !trainSVG || !rouletteDisplayDiv || !trainTimesDiv || !trainTimesList) {
+                console.error("Kunde inte hitta alla nödvändiga DOM-element för att snurra rouletten. Funktionen stoppas.");
+                return; 
             }
 
-            async function finalizeLoadProcess() {
-                // Fetch all station IDs before populating dropdown and enabling interaction
-                loadingText.textContent = "Laddar tågstationsdata..."; // Update text for station ID fetching
-                await fetchAllStationIds(); // Wait for all station IDs to be fetched
-                populateStartCities(); // Now populate the dropdown with ALL cities
-
-                // --- Step 3: Final UI Update after all data is ready ---
-                loadingIndicator.classList.add('hidden'); // Hide all loading indicators
-                destinationDisplay.style.display = 'block';
-                activityDisplay.style.display = 'block';
-                startCitySelect.disabled = false; // Enable dropdown
-                updateDestinations(); // Set initial state of spin button and text based on selected city
-                loadingText.textContent = "Hittar din position..."; // Reset loading text for next time
-            }
-        };
-
-        // Function to spin the roulette
-        async function spinRoulette() { // Made async to await fetchTrainTimes
             const selectedStartCity = startCitySelect.value;
             if (allCitiesData[selectedStartCity].stationId === null || currentDestinations.length === 0) {
-                // Custom modal for alert
                 const modal = document.createElement('div');
                 modal.className = "modal";
                 modal.innerHTML = `
@@ -731,100 +802,135 @@
                     </div>
                 `;
                 document.body.appendChild(modal);
-                // Trigger transition after adding to DOM
                 setTimeout(() => modal.classList.add('show'), 10); 
                 document.getElementById('closeModal').addEventListener('click', () => {
                     modal.classList.remove('show');
-                    setTimeout(() => document.body.removeChild(modal), 300); // Remove after transition
+                    setTimeout(() => document.body.removeChild(modal), 300); 
                 });
                 return;
             }
 
             spinButton.disabled = true;
             rouletteDisplayDiv.classList.add('spinning');
-            trainTimesDiv.classList.add('hidden'); // Hide train times during spin
-            trainTimesList.innerHTML = ''; // Clear previous train times
+            trainTimesDiv.classList.add('hidden'); 
+            trainTimesList.innerHTML = ''; 
+            weatherInfoDiv.classList.add('hidden'); 
+            weatherInfoDiv.style.display = 'none'; 
 
-            // Show train animation and start it
             trainAnimationContainer.classList.remove('hidden');
             trainSVG.style.animationPlayState = 'running';
 
-            // Show destination text and activity text initially, they will rapidly change
             destinationDisplay.style.display = 'block';
-            activityDisplay.style.display = 'block';
-            destinationDisplay.style.opacity = '0.7'; // Dim during spin
-            activityDisplay.style.opacity = '0.7';
+            activityDisplay.style.display = 'none'; 
+            destinationDisplay.style.opacity = '0.7'; 
+            activityDisplay.style.opacity = '0.7'; 
 
             let spinCount = 0;
-            const totalSpins = 40; // More spins for a longer, more dramatic effect
-            const intervalTime = 80; // Faster interval for rapid changes
+            const totalSpins = 40; 
+            const intervalTime = 80; 
 
-            const spinInterval = setInterval(() => {
+            const spinInterval = setInterval(function() {
                 const randomIndex = Math.floor(Math.random() * currentDestinations.length);
                 const currentSpinningDestination = currentDestinations[randomIndex];
 
-                // Update text content
                 destinationDisplay.textContent = currentSpinningDestination.name;
-                activityDisplay.textContent = currentSpinningDestination.activity;
 
-                // Apply a subtle scale/fade animation for each step during spin
                 destinationDisplay.style.transform = 'scale(1.02)';
-                activityDisplay.style.transform = 'scale(1.02)';
                 setTimeout(() => {
                     destinationDisplay.style.transform = 'scale(1)';
-                    activityDisplay.style.transform = 'scale(1)';
-                }, intervalTime / 2); // Half interval for immediate reset
+                }, intervalTime / 2); 
 
                 spinCount++;
                 if (spinCount >= totalSpins) {
                     clearInterval(spinInterval);
 
-                    // Stop the train's animation and hide it
                     trainSVG.style.animationPlayState = 'paused';
                     trainAnimationContainer.classList.add('hidden');
 
-                    const finalIndex = Math.floor(Math.random() * currentDestinations.length);
+                    const finalIndex = Math.floor(Math.random() * currentDestinations.length); 
                     const finalDestination = currentDestinations[finalIndex];
 
-                    // Final reveal animation
                     destinationDisplay.textContent = finalDestination.name;
-                    activityDisplay.textContent = finalDestination.activity;
-                    destinationDisplay.style.opacity = '1'; // Full opacity
+                    activityDisplay.textContent = finalDestination.activity; 
+                    activityDisplay.style.display = 'block'; 
+                    
+                    destinationDisplay.style.opacity = '1'; 
                     activityDisplay.style.opacity = '1';
 
-                    destinationDisplay.style.transform = 'scale(0.8)'; // Start smaller
-                    activityDisplay.style.transform = 'scale(0.8)';
-                    setTimeout(async () => { // Made this callback async to await fetchTrainTimes
-                        destinationDisplay.style.transform = 'scale(1)'; // Pop to normal size
-                        activityDisplay.style.transform = 'scale(1)';
-                        rouletteDisplayDiv.classList.remove('spinning');
-                        
-                        // Fetch and display train times for the final destination
-                        const startCity = startCitySelect.value;
-                        const trainTimes = await fetchTrainTimes(startCity, finalDestination.name); 
-                        console.log("Tågtider att visa:", trainTimes); // NEW DEBUG LOG
-                        trainTimesList.innerHTML = ''; // Clear previous times
-                        if (trainTimes.length > 0 && trainTimes[0] !== "Inga tågtider hittades för denna sträcka just nu.") { // Check if there are actual times to display
-                            trainTimes.forEach(time => {
-                                const li = document.createElement('li');
-                                li.textContent = time;
-                                trainTimesList.appendChild(li);
-                            });
-                            trainTimesDiv.classList.remove('hidden'); // Show train times
-                        } else {
-                            // If no valid times, or "no times found" message, ensure div is hidden
-                            trainTimesList.innerHTML = `<li class="text-gray-500">${trainTimes[0] || "Inga tågtider hittades."}</li>`;
-                            trainTimesDiv.classList.remove('hidden'); // Show the message
-                        }
-                        spinButton.disabled = false; // Enable button only after train times are shown
-                    }, 300); // Small delay for the final pop
+                    destinationDisplay.style.transform = 'scale(0.8)'; 
+                    activityDisplay.style.transform = 'scale(0.8)'; 
+                    
+                    // Promise chain for weather and train times
+                    fetchWeatherData(finalDestination.lat, finalDestination.lon)
+                        .then(weatherData => {
+                            if (weatherData) {
+                                weatherIcon.src = weatherData.icon;
+                                weatherIcon.alt = weatherData.description;
+                                weatherText.textContent = `${weatherData.temp}°C, ${weatherData.description}`;
+                                weatherInfoDiv.classList.remove('hidden'); 
+                                weatherInfoDiv.style.display = 'flex'; 
+                                weatherInfoDiv.style.transform = 'scale(0.8)'; 
+                                weatherInfoDiv.style.opacity = '0';
+                            } else {
+                                weatherInfoDiv.classList.add('hidden'); 
+                                weatherInfoDiv.style.display = 'none'; 
+                            }
+                            return fetchTrainTimes(selectedStartCity, finalDestination.name);
+                        })
+                        .then(trainTimes => {
+                            console.log("Tågtider att visa:", trainTimes); 
+                            trainTimesList.innerHTML = ''; 
+                            if (trainTimes.length > 0 && trainTimes[0] !== "Inga tågtider hittades för denna sträcka just nu.") { 
+                                trainTimes.forEach(time => {
+                                    const li = document.createElement('li');
+                                    li.textContent = time;
+                                    trainTimesList.appendChild(li);
+                                });
+                                trainTimesDiv.classList.remove('hidden'); 
+                            } else {
+                                trainTimesList.innerHTML = `<li class="text-gray-500">${trainTimes[0] || "Inga tågtider hittades."}</li>`;
+                                trainTimesDiv.classList.remove('hidden'); 
+                            }
+                            spinButton.disabled = false; 
+
+                            // Delayed animation for final display elements
+                            setTimeout(() => { 
+                                destinationDisplay.style.transform = 'scale(1)'; 
+                                activityDisplay.style.transform = 'scale(1)';
+                                if (!weatherInfoDiv.classList.contains('hidden')) { // Only animate if weather info is visible
+                                    weatherInfoDiv.style.transform = 'scale(1)'; 
+                                    weatherInfoDiv.style.opacity = '1';
+                                }
+                                rouletteDisplayDiv.classList.remove('spinning');
+                            }, 300); 
+                        })
+                        .catch(error => {
+                            console.error("Fel i Promise-kedjan för väder/tågtider:", error);
+                            // Fallback för att visa felmeddelande eller inaktivera knappen
+                            trainTimesList.innerHTML = `<li class="text-gray-500">Kunde inte ladda tågtider eller väder.</li>`;
+                            trainTimesDiv.classList.remove('hidden');
+                            spinButton.disabled = false; 
+                            setTimeout(() => { 
+                                destinationDisplay.style.transform = 'scale(1)'; 
+                                activityDisplay.style.transform = 'scale(1)';
+                                if (!weatherInfoDiv.classList.contains('hidden')) {
+                                    weatherInfoDiv.style.transform = 'scale(1)'; 
+                                    weatherInfoDiv.style.opacity = '1';
+                                }
+                                rouletteDisplayDiv.classList.remove('spinning');
+                            }, 300); 
+                        });
                 }
             }, intervalTime);
         }
 
-        // Add event listeners for dropdown and button
-        startCitySelect.addEventListener('change', updateDestinations);
-        spinButton.addEventListener('click', spinRoulette);
+        // Lägg till händelselyssnare för dropdown och knapp
+        if (startCitySelect) {
+            startCitySelect.addEventListener('change', updateDestinations);
+        }
+        if (spinButton) {
+            spinButton.addEventListener('click', spinRoulette);
+        }
     </script>
 </body>
 </html>

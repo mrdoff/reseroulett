@@ -80,10 +80,9 @@
             transition: transform 0.1s ease-out, opacity 0.1s ease-out;
             will-change: transform, opacity;
         }
-        #weatherIcon {
-            width: 30px; /* Size for weather icon */
-            height: 30px;
-            flex-shrink: 0; /* Prevent shrinking */
+        #weatherIconEmoji { /* Changed from #weatherIcon to #weatherIconEmoji */
+            font-size: 24px; /* Size for emoji icon */
+            line-height: 1;
         }
         #trainTimes {
             font-size: 0.95rem;
@@ -283,7 +282,7 @@
             <p id="destination" class="text-gray-900 text-4xl font-extrabold"></p>
             <p id="activity" class="text-gray-700 text-lg"></p>
             <div id="weatherInfo" class="hidden">
-                <img id="weatherIcon" src="" alt="Väderikon">
+                <span id="weatherIconEmoji"></span> <!-- Changed from img to span -->
                 <span id="weatherText" class="text-gray-700"></span>
             </div>
             <div id="trainTimes" class="hidden">
@@ -376,7 +375,7 @@
         });
 
         const API_KEY = "3ecf0515-aa56-46a0-b8b3-6656547bd0e7"; // Din API-nyckel för Resrobot v2.1
-        const OPEN_WEATHER_API_KEY = "YOUR_OPENWEATHER_API_KEY"; // ERSÄTT MED DIN OpenWeatherMap API-NYCKEL!
+        const TOMORROW_IO_API_KEY = "SUUDE9kQ1exICZsesV1wy1uC3O1AFA5x"; // Din API-nyckel för Tomorrow.io
 
         // Hämta DOM-element och lägg till säkerhetskontroller
         const spinButton = document.getElementById('spinButton');
@@ -384,7 +383,7 @@
         const destinationDisplay = document.getElementById('destination');
         const activityDisplay = document.getElementById('activity');
         const weatherInfoDiv = document.getElementById('weatherInfo'); 
-        const weatherIcon = document.getElementById('weatherIcon');   
+        const weatherIconEmoji = document.getElementById('weatherIconEmoji'); // Ändrad till span
         const weatherText = document.getElementById('weatherText');   
         const rouletteDisplayDiv = document.getElementById('rouletteDisplay');
         const trainAnimationContainer = document.getElementById('train-animation-container');
@@ -495,7 +494,7 @@
 
         /**
          * Hämtar stations-ID för alla städer från Resrobots API med location.name endpoint.
-         * Uppdaterar allCitiesData-objeket med stationId.
+         * Uppdaterar allCitiesData-objektet med stationId.
          * @returns {Promise<void>} Resolves när alla ID har behandlats.
          */
         function fetchAllStationIds() {
@@ -636,44 +635,85 @@
                 });
         }
 
+        // Mappning för Tomorrow.io väderkoder till beskrivningar och emojis
+        const weatherCodeMap = {
+            1000: { description: "Klart", emoji: "☀️" },
+            1100: { description: "Mestadels klart", emoji: "🌤️" },
+            1101: { description: "Delvis molnigt", emoji: "⛅" },
+            1102: { description: "Mestadels molnigt", emoji: "☁️" },
+            1001: { description: "Molnigt", emoji: "☁️" },
+            2000: { description: "Dimma", emoji: "🌫️" },
+            2100: { description: "Lätt dimma", emoji: "🌫️" },
+            3000: { description: "Lätt vind", emoji: "💨" },
+            3001: { description: "Vindigt", emoji: "🌬️" },
+            3002: { description: "Stark vind", emoji: "🌬️" },
+            4000: { description: "Duggregn", emoji: "�️" },
+            4001: { description: "Regn", emoji: "🌧️" },
+            4200: { description: "Lätt regn", emoji: "🌦️" },
+            4201: { description: "Kraftigt regn", emoji: "⛈️" },
+            5000: { description: "Snö", emoji: "❄️" },
+            5001: { description: "Snöbyar", emoji: "🌨️" },
+            5100: { description: "Lätt snöfall", emoji: "🌨️" },
+            5101: { description: "Kraftigt snöfall", emoji: "🌨️" },
+            6000: { description: "Underkylt duggregn", emoji: "🧊🌧️" },
+            6001: { description: "Underkylt regn", emoji: "🧊🌧️" },
+            6200: { description: "Lätt underkylt regn", emoji: "🧊🌧️" },
+            6201: { description: "Kraftigt underkylt regn", emoji: "🧊⛈️" },
+            7000: { description: "Isregn", emoji: "🌨️" },
+            7101: { description: "Kraftigt isregn", emoji: "🌨️" },
+            7102: { description: "Lätt isregn", emoji: "🌨️" },
+            8000: { description: "Åskväder", emoji: "🌩️" },
+            default: { description: "Okänt väder", emoji: "❓" }
+        };
+
         /**
-         * Hämtar aktuell väderdata för givna koordinater.
+         * Hämtar aktuell väderdata för givna koordinater med Tomorrow.io API.
          * @param {number} lat Latitud för platsen.
          * @param {number} lon Longitud för platsen.
-         * @returns {Promise<{temp: number, description: string, icon: string}|null>} Väderdata eller null vid fel.
+         * @returns {Promise<{temp: number, description: string, emoji: string}|null>} Väderdata eller null vid fel.
          */
         function fetchWeatherData(lat, lon) {
-            if (!OPEN_WEATHER_API_KEY || OPEN_WEATHER_API_KEY === "YOUR_OPENWEATHER_API_KEY") {
-                console.warn("OpenWeatherMap API Key saknas eller är inte inställd. Väderdata kommer inte att hämtas.");
-                return Promise.resolve(null); // Returnera en Promise som omedelbart löses till null
+            if (!TOMORROW_IO_API_KEY) { 
+                console.warn("Tomorrow.io API Key saknas eller är inte inställd. Väderdata kommer inte att hämtas.");
+                return Promise.resolve(null);
             }
 
-            const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPEN_WEATHER_API_KEY}&units=metric&lang=sv`;
-            console.log("Väder API-anrop URL:", weatherApiUrl);
+            const weatherApiUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${lat},${lon}&apikey=${TOMORROW_IO_API_KEY}&units=metric&timesteps=1h&fields=temperature,weatherCode`;
+            console.log("Väder API-anrop URL (Tomorrow.io):", weatherApiUrl);
 
             return fetch(weatherApiUrl)
                 .then(response => {
                     if (!response.ok) {
-                        console.error(`HTTP error fetching weather data! Status: ${response.status} - ${response.statusText}`);
-                        return null; // Vid fel, passera null vidare
+                        console.error(`HTTP error fetching weather data from Tomorrow.io! Status: ${response.status} - ${response.statusText}`);
+                        return null;
                     }
                     return response.json();
                 })
                 .then(data => {
-                    console.log("Väder API-svar:", data);
+                    console.log("Väder API-svar (Tomorrow.io):", data);
 
-                    if (data && data.main && data.weather && data.weather.length > 0) {
+                    // Kontrollera om data.timelines.hourly finns och har minst ett intervall
+                    if (data && data.timelines && data.timelines.hourly && data.timelines.hourly.length > 0) {
+                        // Använd det första intervallet i hourly-arrayen för aktuell väderdata
+                        const values = data.timelines.hourly[0].values;
+                        const temperature = Math.round(values.temperature);
+                        const weatherCode = values.weatherCode;
+                        
+                        const weatherInfo = weatherCodeMap[weatherCode] || weatherCodeMap.default;
+
                         return {
-                            temp: Math.round(data.main.temp),
-                            description: data.weather[0].description,
-                            icon: `https://openweathermap.org/img/wn/${data.weather[0].icon}.png`
+                            temp: temperature,
+                            description: weatherInfo.description,
+                            emoji: weatherInfo.emoji
                         };
+                    } else {
+                        console.warn("Väder API-svaret saknar förväntad 'hourly' data eller 'intervals'.");
                     }
                     return null;
                 })
                 .catch(error => {
-                    console.error("Fel vid hämtning av väderdata:", error);
-                    return null; // Vid fel, passera null vidare
+                    console.error("Fel vid hämtning av väderdata från Tomorrow.io:", error);
+                    return null;
                 });
         }
 
@@ -712,7 +752,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             // Säkerhetskontroller för DOM-element
-            if (!spinButton || !startCitySelect || !destinationDisplay || !activityDisplay || !weatherInfoDiv || !weatherIcon || !weatherText || !rouletteDisplayDiv || !trainAnimationContainer || !trainSVG || !loadingIndicator || !loadingText || !trainTimesDiv || !trainTimesList) {
+            if (!spinButton || !startCitySelect || !destinationDisplay || !activityDisplay || !weatherInfoDiv || !weatherIconEmoji || !weatherText || !rouletteDisplayDiv || !trainAnimationContainer || !trainSVG || !loadingIndicator || !loadingText || !trainTimesDiv || !trainTimesList) {
                 console.error("Kunde inte hitta alla nödvändiga DOM-element vid DOMContentLoaded. Funktionen stoppas.");
                 return;
             }
@@ -860,18 +900,27 @@
                     destinationDisplay.style.transform = 'scale(0.8)'; 
                     activityDisplay.style.transform = 'scale(0.8)'; 
                     
+                    console.log("Anropar fetchWeatherData för:", finalDestination.name);
+                    
                     // Promise chain for weather and train times
                     fetchWeatherData(finalDestination.lat, finalDestination.lon)
                         .then(weatherData => {
                             if (weatherData) {
-                                weatherIcon.src = weatherData.icon;
-                                weatherIcon.alt = weatherData.description;
+                                console.log("Väderdata mottagen, uppdaterar element och visar div.");
+                                weatherIconEmoji.textContent = weatherData.emoji; // Använder emoji
                                 weatherText.textContent = `${weatherData.temp}°C, ${weatherData.description}`;
+                                
+                                // Logga de faktiska värdena som sätts
+                                console.log(`Sätter väderikon till: ${weatherIconEmoji.textContent}`);
+                                console.log(`Sätter vädertext till: ${weatherText.textContent}`);
+
                                 weatherInfoDiv.classList.remove('hidden'); 
                                 weatherInfoDiv.style.display = 'flex'; 
-                                weatherInfoDiv.style.transform = 'scale(0.8)'; 
-                                weatherInfoDiv.style.opacity = '0';
+                                // Ta bort initiala animeringsstilar för omedelbar visning
+                                weatherInfoDiv.style.transform = 'scale(1)'; 
+                                weatherInfoDiv.style.opacity = '1';
                             } else {
+                                console.log("Ingen väderdata mottagen, döljer väderinfo div.");
                                 weatherInfoDiv.classList.add('hidden'); 
                                 weatherInfoDiv.style.display = 'none'; 
                             }
@@ -893,14 +942,11 @@
                             }
                             spinButton.disabled = false; 
 
-                            // Delayed animation for final display elements
+                            // Delayed animation for final display elements - endast för destination/activity
                             setTimeout(() => { 
+                                console.log("Slutlig animation för destination/aktivitet.");
                                 destinationDisplay.style.transform = 'scale(1)'; 
                                 activityDisplay.style.transform = 'scale(1)';
-                                if (!weatherInfoDiv.classList.contains('hidden')) { // Only animate if weather info is visible
-                                    weatherInfoDiv.style.transform = 'scale(1)'; 
-                                    weatherInfoDiv.style.opacity = '1';
-                                }
                                 rouletteDisplayDiv.classList.remove('spinning');
                             }, 300); 
                         })
@@ -913,10 +959,6 @@
                             setTimeout(() => { 
                                 destinationDisplay.style.transform = 'scale(1)'; 
                                 activityDisplay.style.transform = 'scale(1)';
-                                if (!weatherInfoDiv.classList.contains('hidden')) {
-                                    weatherInfoDiv.style.transform = 'scale(1)'; 
-                                    weatherInfoDiv.style.opacity = '1';
-                                }
                                 rouletteDisplayDiv.classList.remove('spinning');
                             }, 300); 
                         });
@@ -934,3 +976,4 @@
     </script>
 </body>
 </html>
+�

@@ -79,10 +79,15 @@
             gap: 8px; /* Space between icon and text */
             transition: transform 0.1s ease-out, opacity 0.1s ease-out;
             will-change: transform, opacity;
+            overflow: hidden; /* Add this to clip content that overflows */
+            justify-content: center; /* Center content within weatherInfo div */
         }
         #weatherIconEmoji { /* Changed from #weatherIcon to #weatherIconEmoji */
             font-size: 24px; /* Size for emoji icon */
             line-height: 1;
+        }
+        #weatherText {
+            white-space: nowrap; /* Prevent text from wrapping */
         }
         #trainTimes {
             font-size: 0.95rem;
@@ -576,53 +581,86 @@
                     if (data.Trip && data.Trip.length > 0) {
                         for (let i = 0; i < data.Trip.length; i++) {
                             const trip = data.Trip[i];
-                            if (trip.LegList && trip.LegList.Leg && trip.LegList.Leg.length > 0) {
-                                const firstLeg = trip.LegList.Leg[0];
-                                const lastLeg = trip.LegList.Leg[trip.LegList.Leg.length - 1]; 
+                            
+                            // Defensive checks for leg objects and their origin/destination properties
+                            if (!trip.LegList || !trip.LegList.Leg || trip.LegList.Leg.length === 0) {
+                                console.warn("Skipping trip due to incomplete leg data (missing LegList or empty Leg array):", trip);
+                                continue; 
+                            }
 
-                                const schedOriginDateTime = new Date(`${firstLeg.Origin.date}T${firstLeg.Origin.time}`);
-                                const schedDestDateTime = new Date(`${lastLeg.Destination.date}T${lastLeg.Destination.time}`);
+                            const firstLeg = trip.LegList.Leg[0];
+                            const lastLeg = trip.LegList.Leg[trip.LegList.Leg.length - 1]; 
+
+                            if (!firstLeg || !firstLeg.Origin || !lastLeg || !lastLeg.Destination) {
+                                console.warn("Skipping trip due to missing origin/destination data in leg:", trip);
+                                continue; 
+                            }
+
+                            let schedOriginDateTime, schedDestDateTime, effectiveOriginDateTime, effectiveDestDateTime;
+
+                            try {
+                                const schedOriginDateTimeStr = `${firstLeg.Origin.date}T${firstLeg.Origin.time}`;
+                                const schedDestDateTimeStr = `${lastLeg.Destination.date}T${lastLeg.Destination.time}`;
+
+                                schedOriginDateTime = new Date(schedOriginDateTimeStr);
+                                schedDestDateTime = new Date(schedDestDateTimeStr);
+                                
+                                if (isNaN(schedOriginDateTime.getTime()) || isNaN(schedDestDateTime.getTime())) {
+                                    console.warn("Skipping trip due to invalid scheduled date/time string:", schedOriginDateTimeStr, schedDestDateTimeStr);
+                                    continue;
+                                }
 
                                 const effectiveOriginDate = firstLeg.Origin.rtDate || firstLeg.Origin.date;
                                 const effectiveOriginTime = firstLeg.Origin.rtTime || firstLeg.Origin.time;
                                 const effectiveDestDate = lastLeg.Destination.rtDate || lastLeg.Destination.date;
                                 const effectiveDestTime = lastLeg.Destination.rtTime || lastLeg.Destination.time;
 
-                                const effectiveOriginDateTime = new Date(`${effectiveOriginDate}T${effectiveOriginTime}`);
-                                const effectiveDestDateTime = new Date(`${effectiveDestDate}T${effectiveDestTime}`);
+                                const effectiveOriginDateTimeStr = `${effectiveOriginDate}T${effectiveOriginTime}`;
+                                const effectiveDestDateTimeStr = `${effectiveDestDate}T${effectiveDestTime}`;
 
-                                const depFormatted = effectiveOriginDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-                                const arrFormatted = effectiveDestDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+                                effectiveOriginDateTime = new Date(effectiveOriginDateTimeStr);
+                                effectiveDestDateTime = new Date(effectiveDestDateTimeStr);
 
-                                let depStatusText = '';
-                                let arrStatusText = '';
-                                let hasDeviation = false; 
-
-                                if (effectiveOriginDateTime.getTime() > schedOriginDateTime.getTime() + 60000) { 
-                                    depStatusText = '(försenad)';
-                                    hasDeviation = true;
-                                } else if (effectiveOriginDateTime.getTime() < schedOriginDateTime.getTime() - 60000) { 
-                                    depStatusText = '(tidig)';
-                                    hasDeviation = true;
-                                } 
-
-                                if (effectiveDestDateTime.getTime() > schedDestDateTime.getTime() + 60000) { 
-                                    arrStatusText = '(försenad)';
-                                    hasDeviation = true;
-                                } else if (effectiveDestDateTime.getTime() < schedDestDateTime.getTime() - 60000) { 
-                                    arrStatusText = '(tidig)';
-                                    hasDeviation = true;
-                                } 
-
-                                let formattedTimeString = `Avgår: ${depFormatted} ${depStatusText} (${startCityName}) - Ankommer: ${arrFormatted} ${arrStatusText} (${destinationCityName})`;
-                                
-                                if (hasDeviation) {
-                                    formattedTimeString += " (OBS: Avvikelse!)";
+                                if (isNaN(effectiveOriginDateTime.getTime()) || isNaN(effectiveDestDateTime.getTime())) {
+                                    console.warn("Skipping trip due to invalid effective date/time string:", effectiveOriginDateTimeStr, effectiveDestDateTimeStr);
+                                    continue;
                                 }
-
-                                times.push(formattedTimeString);
-                                console.log("Formaterad tågtid för display:", formattedTimeString); 
+                            } catch (e) {
+                                console.error("Error creating Date objects for trip, skipping:", e, trip);
+                                continue; 
                             }
+
+                            const depFormatted = effectiveOriginDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+                            const arrFormatted = effectiveDestDateTime.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+
+                            let depStatusText = '';
+                            let arrStatusText = '';
+                            let hasDeviation = false; 
+
+                            if (effectiveOriginDateTime.getTime() > schedOriginDateTime.getTime() + 60000) { 
+                                depStatusText = '(försenad)';
+                                hasDeviation = true;
+                            } else if (effectiveOriginDateTime.getTime() < schedOriginDateTime.getTime() - 60000) { 
+                                depStatusText = '(tidig)';
+                                hasDeviation = true;
+                            } 
+
+                            if (effectiveDestDateTime.getTime() > schedDestDateTime.getTime() + 60000) { 
+                                arrStatusText = '(försenad)';
+                                hasDeviation = true;
+                            } else if (effectiveDestDateTime.getTime() < schedDestDateTime.getTime() - 60000) { 
+                                arrStatusText = '(tidig)';
+                                hasDeviation = true;
+                            } 
+
+                            let formattedTimeString = `Avgår: ${depFormatted} ${depStatusText} (${startCityName}) - Ankommer: ${arrFormatted} ${arrStatusText} (${destinationCityName})`;
+                            
+                            if (hasDeviation) {
+                                formattedTimeString += " (OBS: Avvikelse!)";
+                            }
+
+                            times.push(formattedTimeString);
+                            console.log("Formaterad tågtid för display:", formattedTimeString); 
                         }
                     } else {
                         times.push("Inga tågtider hittades för denna sträcka just nu.");
@@ -640,16 +678,16 @@
             1000: { description: "Klart", emoji: "☀️" },
             1100: { description: "Mestadels klart", emoji: "🌤️" },
             1101: { description: "Delvis molnigt", emoji: "⛅" },
-            1102: { description: "Mestadels molnigt", emoji: "☁️" },
-            1001: { description: "Molnigt", emoji: "☁️" },
+            1102: { description: "Mestadels molnigt", emoji: "&#x2601;" }, // Changed to basic cloud symbol
+            1001: { description: "Molnigt", emoji: "&#x2601;" }, // Changed to basic cloud symbol
             2000: { description: "Dimma", emoji: "🌫️" },
             2100: { description: "Lätt dimma", emoji: "🌫️" },
             3000: { description: "Lätt vind", emoji: "💨" },
             3001: { description: "Vindigt", emoji: "🌬️" },
             3002: { description: "Stark vind", emoji: "🌬️" },
-            4000: { description: "Duggregn", emoji: "�️" },
+            4000: { description: "Duggregn", emoji: "🌧️" },
             4001: { description: "Regn", emoji: "🌧️" },
-            4200: { description: "Lätt regn", emoji: "🌦️" },
+            4200: { description: "Lätt regn", emoji: "�️" },
             4201: { description: "Kraftigt regn", emoji: "⛈️" },
             5000: { description: "Snö", emoji: "❄️" },
             5001: { description: "Snöbyar", emoji: "🌨️" },
@@ -907,11 +945,11 @@
                         .then(weatherData => {
                             if (weatherData) {
                                 console.log("Väderdata mottagen, uppdaterar element och visar div.");
-                                weatherIconEmoji.textContent = weatherData.emoji; // Använder emoji
+                                weatherIconEmoji.innerHTML = weatherData.emoji; // Använder innerHTML för att rendera HTML-entiteter
                                 weatherText.textContent = `${weatherData.temp}°C, ${weatherData.description}`;
                                 
                                 // Logga de faktiska värdena som sätts
-                                console.log(`Sätter väderikon till: ${weatherIconEmoji.textContent}`);
+                                console.log(`Sätter väderikon till: ${weatherIconEmoji.innerHTML}`);
                                 console.log(`Sätter vädertext till: ${weatherText.textContent}`);
 
                                 weatherInfoDiv.classList.remove('hidden'); 

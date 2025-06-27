@@ -13,6 +13,9 @@
     <!-- End Google Tag Manager -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        html, body {
+            overflow-x: hidden; /* Döljer allt innehåll som sträcker sig utanför den horisontella skärmen */
+        }
         body {
             font-family: 'Inter', sans-serif;
             /* Subtle diagonal gradient background for more depth */
@@ -149,7 +152,7 @@
             width: 100%;
             max-width: 300px;
             appearance: none; /* Remove default dropdown arrow */
-            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234A5568%22%20d%3D%22M287%2C197.3L159.2%2C69.5c-3.6-3.6-8.5-5.4-13.9-5.4s-10.3%2C1.8-13.9%2C5.4L5.4%2C197.3c-3.6%2C3.6-5.4%2C8.5-5.4%2C13.9s1.8%2C10.3%2C5.4%2C13.9l13.9%2C13.9c3.6%2C3.6%2C8.5%2C5.4%2C13.9%2C5.4s10.3-1.8%2C13.9-5.4l92.5-92.5l92.5%2C92.5c3.6%2C3.6%2C8.5%2C5.4%2C13.9%2C5.4s10.3-1.8%2C13.9-5.4l13.9-13.9c3.6-3.6%2C5.4-8.5%2C5.4-13.9s-1.8-10.3-5.4-13.9z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234A5568%22%20d%3D%22M287%2C197.3L159.2%2C69.5c-3.6-3.6-8.5-5.4-13.9-5.4s-10.3%2C1.8-13.9%2C5.4L5.4%2C197.3c-3.6%2C3.6-5.4%2C8.5-5.4%2C13.9s1.8%2C10.3%2C5.4%2C13.9l13.9%2C13.9c3.6%2C3.6%2C8.5%2C5.4%2C13.9%2C5.4s10.3-1.8%2C13.9-5.4l92.5-92.5l92.5%2C92.5c3.6%2C3.6%2C8.5%2C5.4%2C13.9%2C5.4s10.3-1.8%2C13.9-5.4l13.9-13.9c3.6-3.6%2C5.4-8.5%2C5.4-13.9s-1.8-10.3-5.4-13.9z%22%2F%3E%3C%2Fsvg%3E');
             background-repeat: no-repeat;
             background-position: right 10px top 50%;
             background-size: 12px;
@@ -399,6 +402,7 @@
         const trainTimesList = document.getElementById('trainTimesList'); 
 
         let currentDestinations = []; 
+        let isCityAutoSelected = false; // Ny flagga för att indikera om staden valts automatiskt
 
         // Funktion för att fylla dropdown-menyn med alla startstäder
         function populateStartCities() {
@@ -441,9 +445,16 @@
                 destinationDisplay.textContent = `Kunde inte hämta tågdata för ${selectedStartCity} eller inga destinationer hittades.`; 
                 activityDisplay.textContent = "Välj en annan startort eller försök igen senare.";
             } else {
+                // Om staden valdes automatiskt, visa specifikt meddelande
+                if (isCityAutoSelected) {
+                    destinationDisplay.textContent = "Din närmaste stad är:";
+                    activityDisplay.textContent = selectedStartCity + " (valt automatiskt)";
+                    isCityAutoSelected = false; // Återställ flaggan efter att ha visat meddelandet
+                } else { // Annars, visa standardmeddelandet
+                    destinationDisplay.textContent = "Slumpa min resa!";
+                    activityDisplay.textContent = "Välj din startort och klicka för att hitta en destination.";
+                }
                 spinButton.disabled = false;
-                destinationDisplay.textContent = "Slumpa min resa!";
-                activityDisplay.textContent = "Välj din startort och klicka för att hitta en destination.";
             }
             // Se till att tåget är dolt och texten synlig efter att en ny stad valts
             trainAnimationContainer.classList.add('hidden');
@@ -685,7 +696,7 @@
             3000: { description: "Lätt vind", emoji: "💨" },
             3001: { description: "Vindigt", emoji: "🌬️" },
             3002: { description: "Stark vind", emoji: "🌬️" },
-            4000: { description: "Duggregn", emoji: "🌧️" },
+            4000: { description: "Duggregn", emoji: "�️" },
             4001: { description: "Regn", emoji: "🌧️" },
             4200: { description: "Lätt regn", emoji: "🌦️" },
             4201: { description: "Kraftigt regn", emoji: "⛈️" },
@@ -757,6 +768,7 @@
 
         // Funktion för att hantera geolokaliseringsresultatet (framgång eller fel)
         function handleGeolocationResult(position) {
+            console.log("Geolocation lyckades. Position:", position);
             if (!startCitySelect || !destinationDisplay || !activityDisplay) {
                 console.error("handleGeolocationResult: Något obligatoriskt DOM-element saknas.");
                 return; 
@@ -767,25 +779,26 @@
 
             if (nearestCity && allCitiesData[nearestCity] && allCitiesData[nearestCity].stationId !== null) {
                 startCitySelect.value = nearestCity;
-                destinationDisplay.textContent = "Din närmaste stad är:";
-                activityDisplay.textContent = nearestCity + " (valt automatiskt)";
+                isCityAutoSelected = true; // Sätt flaggan när staden väljs automatiskt
+                console.log(`Närmaste stad hittad och vald: ${nearestCity}`);
             } else {
                 startCitySelect.value = "Malmö"; 
-                destinationDisplay.textContent = "Välj startort!";
-                activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+                isCityAutoSelected = false; // Säkerställ att flaggan är falsk om autoval misslyckas
+                console.warn("Kunde inte hitta en giltig närmaste stad med stations-ID. Standard: Malmö.");
             }
+            updateDestinations(); // Uppdatera displayen baserat på det nya valet
         }
 
         // Funktion för att hantera geolokaliseringsfel
         function handleGeolocationError(error) {
+            console.error("Geolocation misslyckades:", error.message || "Okänt fel vid geolokalisering.");
             if (!startCitySelect || !destinationDisplay || !activityDisplay) {
                 console.error("handleGeolocationError: Något obligatoriskt DOM-element saknas.");
                 return; 
             }
-            console.error("Fel vid hämtning av plats: ", error.message || "Okänt fel vid geolokalisering.");
             startCitySelect.value = "Malmö"; 
-            destinationDisplay.textContent = "Välj startort!";
-            activityDisplay.textContent = "Klicka på knappen för att starta din utflyktsroulett.";
+            isCityAutoSelected = false; // Säkerställ att flaggan är falsk vid fel
+            updateDestinations(); // Uppdatera displayen till standardläget
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -795,7 +808,7 @@
                 return;
             }
 
-            // Visa laddningsindikator och dölj huvudsinnehållet initialt
+            // 1. Visa laddningsindikator och dölj huvudsinnehållet initialt
             loadingIndicator.classList.remove('hidden');
             destinationDisplay.style.display = 'none';
             activityDisplay.style.display = 'none';
@@ -805,60 +818,63 @@
             startCitySelect.disabled = true;
             spinButton.disabled = true;
 
-            let geolocationFinished = false;
+            // 2. Fyll i städerna i dropdown-menyn omedelbart
+            populateStartCities();
 
-            function finalizeLoadProcess() {
-                loadingText.textContent = "Laddar tågstationsdata...";
-                fetchAllStationIds()
-                    .then(() => {
-                        populateStartCities();
+            // 3. Hämta alla stations-ID (kan ske parallellt med geolokalisering)
+            loadingText.textContent = "Laddar tågstationsdata...";
+            fetchAllStationIds()
+                .then(() => {
+                    console.log("Stationsdata laddad. Försöker hitta position.");
+                    // När stationsdata är laddad, försök geolokalisering
+                    loadingText.textContent = "Hittar din position...";
+                    if (navigator.geolocation) {
+                        const geoTimeout = setTimeout(() => {
+                            console.warn("Geolocation tar längre tid än förväntat...");
+                            loadingText.textContent = "Hittar din position (det kan ta en stund)...";
+                        }, 5000); // Varning efter 5 sekunder
+
+                        navigator.geolocation.getCurrentPosition(
+                            function(position) {
+                                clearTimeout(geoTimeout);
+                                handleGeolocationResult(position); // Sätter startCitySelect.value och anropar updateDestinations
+                                loadingIndicator.classList.add('hidden');
+                                destinationDisplay.style.display = 'block';
+                                activityDisplay.style.display = 'block';
+                                startCitySelect.disabled = false; // Aktivera dropdown
+                                spinButton.disabled = false; // Aktivera knappen
+                            },
+                            function(error) {
+                                clearTimeout(geoTimeout);
+                                handleGeolocationError(error); // Sätter Malmö som standard och anropar updateDestinations
+                                loadingIndicator.classList.add('hidden');
+                                destinationDisplay.style.display = 'block';
+                                activityDisplay.style.display = 'block';
+                                startCitySelect.disabled = false; // Aktivera dropdown
+                                spinButton.disabled = false; // Aktivera knappen
+                            },
+                            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 } // Försök med hög precision, timeout efter 15 sekunder
+                        );
+                    } else {
+                        console.warn("Webbläsaren stöder inte geolokalisering.");
+                        handleGeolocationError({ message: "Webbläsaren stöder inte geolokalisering." });
                         loadingIndicator.classList.add('hidden');
                         destinationDisplay.style.display = 'block';
                         activityDisplay.style.display = 'block';
-                        startCitySelect.disabled = false;
-                        updateDestinations();
-                        loadingText.textContent = "Hittar din position...";
-                    })
-                    .catch(error => {
-                        console.error("Fel vid laddning av stationsdata:", error);
-                        // Fortsätt laddning även vid fel för att undvika att appen låser sig
-                        loadingIndicator.classList.add('hidden');
-                        destinationDisplay.style.display = 'block';
-                        activityDisplay.style.display = 'block';
-                        startCitySelect.disabled = false;
-                        updateDestinations(); // Uppdatera med eventuella felmeddelanden
-                    });
-            }
-
-            if (navigator.geolocation) {
-                const timeout1 = setTimeout(() => {
-                    if (!geolocationFinished) loadingText.textContent = "Nästan där...";
-                }, 5000);
-                const timeout2 = setTimeout(() => {
-                    if (!geolocationFinished) loadingText.textContent = "Nu går snart tåget...";
-                }, 10000);
-
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        geolocationFinished = true;
-                        clearTimeout(timeout1);
-                        clearTimeout(timeout2);
-                        handleGeolocationResult(position);
-                        finalizeLoadProcess();
-                    },
-                    function(error) {
-                        geolocationFinished = true;
-                        clearTimeout(timeout1);
-                        clearTimeout(timeout2);
-                        handleGeolocationError(error);
-                        finalizeLoadProcess();
+                        startCitySelect.disabled = false; // Aktivera dropdown
+                        spinButton.disabled = false; // Aktivera knappen
                     }
-                );
-            } else {
-                console.log("Webbläsaren stöder inte geolokalisering.");
-                handleGeolocationError({ message: "Webbläsaren stöder inte geolokalisering." });
-                finalizeLoadProcess();
-            }
+                })
+                .catch(error => {
+                    console.error("Fel vid laddning av stationsdata:", error);
+                    // Även om stationsdata misslyckas, fortsätt med standardstad
+                    startCitySelect.disabled = false; // Aktivera dropdown
+                    spinButton.disabled = false; // Aktivera knappen
+                    loadingIndicator.classList.add('hidden');
+                    destinationDisplay.style.display = 'block';
+                    activityDisplay.style.display = 'block';
+                    handleGeolocationError({ message: "Stationsdata kunde inte laddas." }); // Trigger default state
+                });
         });
 
         // Funktion för att snurra rouletten
@@ -980,7 +996,7 @@
                             }
                             spinButton.disabled = false; 
 
-                            // Delayed animation for final display elements - endast för destination/activity
+                            // Delayed animation for final display elements - endast för destination/aktivitet
                             setTimeout(() => { 
                                 console.log("Slutlig animation för destination/aktivitet.");
                                 destinationDisplay.style.transform = 'scale(1)'; 
@@ -1014,3 +1030,4 @@
     </script>
 </body>
 </html>
+�
